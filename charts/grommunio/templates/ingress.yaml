@@ -1,0 +1,54 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "grommunio.fullname" . }}
+  labels:
+    {{- include "grommunio.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- if or (and .Values.ingress.web.enabled .Values.ingress.web.tls.enabled) (and .Values.ingress.admin.enabled .Values.ingress.admin.tls.enabled) }}
+  tls:
+    {{- if and .Values.ingress.web.enabled .Values.ingress.web.tls.enabled }}
+    - hosts:
+        - {{ .Values.ingress.web.host | quote }}
+      secretName: {{ .Values.ingress.web.tls.secretName }}
+    {{- end }}
+    {{- if and .Values.ingress.admin.enabled .Values.ingress.admin.tls.enabled }}
+    - hosts:
+        - {{ .Values.ingress.admin.host | quote }}
+      secretName: {{ .Values.ingress.admin.tls.secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- if .Values.ingress.web.enabled }}
+    - host: {{ .Values.ingress.web.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.web.path }}
+            pathType: {{ .Values.ingress.web.pathType }}
+            backend:
+              service:
+                name: {{ include "grommunio.core.fullname" . }}
+                port:
+                  name: web
+    {{- end }}
+    {{- if .Values.ingress.admin.enabled }}
+    - host: {{ .Values.ingress.admin.host | quote }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.admin.path }}
+            pathType: {{ .Values.ingress.admin.pathType }}
+            backend:
+              service:
+                name: {{ include "grommunio.core.fullname" . }}
+                port:
+                  name: admin
+    {{- end }}
+{{- end }}

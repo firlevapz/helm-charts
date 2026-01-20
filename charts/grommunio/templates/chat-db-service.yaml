@@ -1,0 +1,17 @@
+{{- if .Values.databases.chat.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grommunio.chatDb.fullname" . }}
+  labels:
+    {{- include "grommunio.chatDb.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+      protocol: TCP
+  selector:
+    {{- include "grommunio.chatDb.selectorLabels" . | nindent 4 }}
+{{- end }}

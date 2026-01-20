@@ -1,0 +1,485 @@
+# Default values for grommunio
+# This is a YAML-formatted file.
+
+# -- Global settings
+global:
+  # -- Storage class for all PVCs (leave empty for default)
+  storageClass: ""
+  # -- Image pull secrets
+  imagePullSecrets: []
+
+# -- Namespace to deploy into
+namespace: grommunio
+
+# =============================================================================
+# Database configurations
+# =============================================================================
+
+databases:
+  # -- Main grommunio database
+  gromox:
+    enabled: true
+    image:
+      repository: mariadb
+      tag: "10"
+      pullPolicy: IfNotPresent
+    # -- Database credentials
+    rootPassword: ""  # Set via secret or values
+    database: grommunio
+    user: grommunio
+    password: ""  # Set via secret or values
+    # -- Use existing secret for credentials
+    existingSecret: ""
+    existingSecretRootPasswordKey: "mariadb-root-password"
+    existingSecretPasswordKey: "mariadb-password"
+    # -- Persistence settings
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+    # -- Resource limits
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    # -- Health check settings
+    healthcheck:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 5
+
+  # -- Chat database
+  chat:
+    enabled: true
+    image:
+      repository: mariadb
+      tag: "10"
+      pullPolicy: IfNotPresent
+    rootPassword: ""
+    database: grochat
+    user: grochat
+    password: ""
+    existingSecret: ""
+    existingSecretRootPasswordKey: "mariadb-root-password"
+    existingSecretPasswordKey: "mariadb-password"
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "250m"
+    healthcheck:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 5
+
+  # -- Files database
+  files:
+    enabled: true
+    image:
+      repository: mariadb
+      tag: "10"
+      pullPolicy: IfNotPresent
+    rootPassword: ""
+    database: grofiles
+    user: grofiles
+    password: ""
+    existingSecret: ""
+    existingSecretRootPasswordKey: "mariadb-root-password"
+    existingSecretPasswordKey: "mariadb-password"
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "250m"
+    healthcheck:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 5
+
+  # -- Office database
+  office:
+    enabled: true
+    image:
+      repository: mariadb
+      tag: "10"
+      pullPolicy: IfNotPresent
+    rootPassword: ""
+    database: groffice
+    user: groffice
+    password: ""
+    existingSecret: ""
+    existingSecretRootPasswordKey: "mariadb-root-password"
+    existingSecretPasswordKey: "mariadb-password"
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "250m"
+    healthcheck:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 5
+
+  # -- Archive database
+  archive:
+    enabled: true
+    image:
+      repository: mariadb
+      tag: "10"
+      pullPolicy: IfNotPresent
+    rootPassword: ""
+    database: groarchive
+    user: groarchive
+    password: ""
+    existingSecret: ""
+    existingSecretRootPasswordKey: "mariadb-root-password"
+    existingSecretPasswordKey: "mariadb-password"
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "250m"
+    healthcheck:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 5
+
+# =============================================================================
+# Application configurations
+# =============================================================================
+
+# -- Core grommunio application
+core:
+  enabled: true
+  image:
+    # -- Container image repository (set to your custom built image)
+    repository: ""  # e.g., ghcr.io/your-org/gromox-core
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  # -- Number of replicas
+  replicaCount: 1
+
+  # -- Security context settings
+  securityContext:
+    # -- Note: SYS_ADMIN capability requires privileged containers
+    # This may not work in all Kubernetes environments
+    privileged: false
+    capabilities:
+      add: []
+      # Uncomment if your cluster supports these capabilities:
+      # - SYS_ADMIN
+      # - SYS_RESOURCE
+
+  # -- Pod security context
+  podSecurityContext:
+    fsGroup: 1000
+
+  # -- Environment variables from ConfigMap
+  env: {}
+
+  # -- Environment variables from existing ConfigMap
+  envFromConfigMap: ""
+
+  # -- Environment variables from existing Secret
+  envFromSecret: ""
+
+  # -- Extra environment variables
+  extraEnv: []
+  # - name: EXAMPLE_VAR
+  #   value: "example-value"
+
+  # -- Resource limits
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+  # -- Node selector
+  nodeSelector: {}
+
+  # -- Tolerations
+  tolerations: []
+
+  # -- Affinity rules
+  affinity: {}
+
+  # -- Service configuration
+  service:
+    type: ClusterIP
+    annotations: {}
+    # -- SSH port
+    ssh:
+      enabled: false
+      port: 22
+      nodePort: ""
+    # -- Admin port (8443)
+    admin:
+      port: 8443
+    # -- Web port (443)
+    web:
+      port: 443
+    # -- IMAP port (993)
+    imap:
+      port: 993
+    # -- HTTP port (80)
+    http:
+      port: 80
+
+  # -- Persistence for shared data
+  persistence:
+    # -- Data volume
+    data:
+      enabled: true
+      size: 50Gi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+      # -- Use existing PVC
+      existingClaim: ""
+
+    # -- Variables volume
+    variables:
+      enabled: true
+      size: 1Gi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+      existingClaim: ""
+
+    # -- Certificates volume
+    certs:
+      enabled: true
+      size: 100Mi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+      existingClaim: ""
+
+  # -- Liveness probe
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 120
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 6
+
+  # -- Readiness probe
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# -- Archive service
+archive:
+  enabled: true
+  image:
+    repository: ""  # e.g., ghcr.io/your-org/gromox-archive
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  securityContext:
+    privileged: false
+    capabilities:
+      add: []
+
+  podSecurityContext:
+    fsGroup: 1000
+
+  env: {}
+  envFromConfigMap: ""
+  envFromSecret: ""
+  extraEnv: []
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+
+  livenessProbe:
+    enabled: false
+
+  readinessProbe:
+    enabled: false
+
+# -- Office service
+office:
+  enabled: true
+  image:
+    repository: ""  # e.g., ghcr.io/your-org/gromox-office
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  securityContext:
+    privileged: false
+    capabilities:
+      add: []
+
+  podSecurityContext:
+    fsGroup: 1000
+
+  env: {}
+  envFromConfigMap: ""
+  envFromSecret: ""
+  extraEnv: []
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+
+  livenessProbe:
+    enabled: false
+
+  readinessProbe:
+    enabled: false
+
+# =============================================================================
+# Ingress configuration
+# =============================================================================
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+
+  # -- Web interface
+  web:
+    enabled: true
+    host: grommunio.example.com
+    path: /
+    pathType: Prefix
+    tls:
+      enabled: true
+      secretName: grommunio-web-tls
+
+  # -- Admin interface
+  admin:
+    enabled: true
+    host: admin.grommunio.example.com
+    path: /
+    pathType: Prefix
+    tls:
+      enabled: true
+      secretName: grommunio-admin-tls
+
+# =============================================================================
+# Service Account
+# =============================================================================
+
+serviceAccount:
+  # -- Create service account
+  create: true
+  # -- Service account name
+  name: ""
+  # -- Annotations
+  annotations: {}
+
+# =============================================================================
+# Network Policies
+# =============================================================================
+
+networkPolicy:
+  enabled: false
+  # -- Additional ingress rules
+  ingress: []
+  # -- Additional egress rules
+  egress: []
+
+# =============================================================================
+# Pod Disruption Budget
+# =============================================================================
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1

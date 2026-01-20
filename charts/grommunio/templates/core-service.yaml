@@ -1,0 +1,42 @@
+{{- if .Values.core.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grommunio.core.fullname" . }}
+  labels:
+    {{- include "grommunio.core.labels" . | nindent 4 }}
+  {{- with .Values.core.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.core.service.type }}
+  ports:
+    {{- if .Values.core.service.ssh.enabled }}
+    - name: ssh
+      port: {{ .Values.core.service.ssh.port }}
+      targetPort: ssh
+      protocol: TCP
+      {{- if and (eq .Values.core.service.type "NodePort") .Values.core.service.ssh.nodePort }}
+      nodePort: {{ .Values.core.service.ssh.nodePort }}
+      {{- end }}
+    {{- end }}
+    - name: admin
+      port: {{ .Values.core.service.admin.port }}
+      targetPort: admin
+      protocol: TCP
+    - name: web
+      port: {{ .Values.core.service.web.port }}
+      targetPort: web
+      protocol: TCP
+    - name: imap
+      port: {{ .Values.core.service.imap.port }}
+      targetPort: imap
+      protocol: TCP
+    - name: http
+      port: {{ .Values.core.service.http.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "grommunio.core.selectorLabels" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,90 @@
+{{- if .Values.databases.gromox.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "grommunio.gromoxDb.fullname" . }}
+  labels:
+    {{- include "grommunio.gromoxDb.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "grommunio.gromoxDb.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "grommunio.gromoxDb.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "grommunio.gromoxDb.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "grommunio.imagePullSecrets" . | nindent 6 }}
+      containers:
+        - name: mariadb
+          image: "{{ .Values.databases.gromox.image.repository }}:{{ .Values.databases.gromox.image.tag }}"
+          imagePullPolicy: {{ .Values.databases.gromox.image.pullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.gromoxDb.secretName" . }}
+                  key: {{ .Values.databases.gromox.existingSecretRootPasswordKey | default "mariadb-root-password" }}
+            - name: MARIADB_DATABASE
+              value: {{ .Values.databases.gromox.database | quote }}
+            - name: MARIADB_USER
+              value: {{ .Values.databases.gromox.user | quote }}
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.gromoxDb.secretName" . }}
+                  key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-password" }}
+          {{- if .Values.databases.gromox.healthcheck.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - mariadb --host=localhost --user=${MARIADB_USER} --password=${MARIADB_PASSWORD} -e 'SELECT 1;'
+            initialDelaySeconds: {{ .Values.databases.gromox.healthcheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.databases.gromox.healthcheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.databases.gromox.healthcheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.databases.gromox.healthcheck.failureThreshold }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - mariadb --host=localhost --user=${MARIADB_USER} --password=${MARIADB_PASSWORD} -e 'SELECT 1;'
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{- end }}
+          {{- with .Values.databases.gromox.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+  {{- if .Values.databases.gromox.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "grommunio.gromoxDb.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.databases.gromox.persistence.accessModes | nindent 10 }}
+        {{- include "grommunio.storageClass" (dict "global" .Values.global.storageClass "local" .Values.databases.gromox.persistence.storageClass) | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.databases.gromox.persistence.size | quote }}
+  {{- else }}
+      volumes:
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}

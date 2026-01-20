@@ -1,0 +1,181 @@
+{{- if .Values.office.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grommunio.office.fullname" . }}
+  labels:
+    {{- include "grommunio.office.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.office.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "grommunio.office.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "grommunio.office.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "grommunio.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "grommunio.serviceAccountName" . }}
+      {{- with .Values.office.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.office.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.office.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.office.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        # Wait for gromox-db to be ready
+        - name: wait-for-gromox-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "grommunio.gromoxDb.fullname" . }} 3306; do echo waiting for gromox-db; sleep 2; done']
+        {{- if .Values.databases.files.enabled }}
+        # Wait for files-db to be ready
+        - name: wait-for-files-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "grommunio.filesDb.fullname" . }} 3306; do echo waiting for files-db; sleep 2; done']
+        {{- end }}
+        {{- if .Values.databases.office.enabled }}
+        # Wait for office-db to be ready
+        - name: wait-for-office-db
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "grommunio.officeDb.fullname" . }} 3306; do echo waiting for office-db; sleep 2; done']
+        {{- end }}
+        # Wait for core to be started
+        - name: wait-for-core
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z {{ include "grommunio.core.fullname" . }} 80; do echo waiting for gromox-core; sleep 5; done']
+      containers:
+        - name: office
+          image: "{{ .Values.office.image.repository }}:{{ .Values.office.image.tag }}"
+          imagePullPolicy: {{ .Values.office.image.pullPolicy }}
+          {{- with .Values.office.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            # Database connection info for gromox-db
+            - name: GROMOX_DB_HOST
+              value: {{ include "grommunio.gromoxDb.fullname" . }}
+            - name: GROMOX_DB_NAME
+              value: {{ .Values.databases.gromox.database | quote }}
+            - name: GROMOX_DB_USER
+              value: {{ .Values.databases.gromox.user | quote }}
+            - name: GROMOX_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.gromoxDb.secretName" . }}
+                  key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-password" }}
+            {{- if .Values.databases.files.enabled }}
+            # Files database connection
+            - name: FILES_DB_HOST
+              value: {{ include "grommunio.filesDb.fullname" . }}
+            - name: FILES_DB_NAME
+              value: {{ .Values.databases.files.database | quote }}
+            - name: FILES_DB_USER
+              value: {{ .Values.databases.files.user | quote }}
+            - name: FILES_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.filesDb.secretName" . }}
+                  key: {{ .Values.databases.files.existingSecretPasswordKey | default "mariadb-password" }}
+            {{- end }}
+            {{- if .Values.databases.office.enabled }}
+            # Office database connection
+            - name: OFFICE_DB_HOST
+              value: {{ include "grommunio.officeDb.fullname" . }}
+            - name: OFFICE_DB_NAME
+              value: {{ .Values.databases.office.database | quote }}
+            - name: OFFICE_DB_USER
+              value: {{ .Values.databases.office.user | quote }}
+            - name: OFFICE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.officeDb.secretName" . }}
+                  key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-password" }}
+            {{- end }}
+            {{- range $key, $value := .Values.office.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- with .Values.office.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- if .Values.office.envFromConfigMap }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.office.envFromConfigMap }}
+          {{- end }}
+          {{- if .Values.office.envFromSecret }}
+            - secretRef:
+                name: {{ .Values.office.envFromSecret }}
+          {{- end }}
+          {{- if .Values.office.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
+          {{- end }}
+          {{- if .Values.office.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{- end }}
+          {{- with .Values.office.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          stdin: true
+          tty: true
+          volumeMounts:
+            {{- if .Values.core.persistence.data.enabled }}
+            - name: data
+              mountPath: /data
+            {{- end }}
+            {{- if .Values.core.persistence.variables.enabled }}
+            - name: variables
+              mountPath: /home/vars
+            {{- end }}
+            {{- if .Values.core.persistence.certs.enabled }}
+            - name: certs
+              mountPath: /etc/grommunio-common/ssl
+            {{- end }}
+      volumes:
+        {{- if .Values.core.persistence.data.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.core.persistence.data.existingClaim | default (printf "%s-data" (include "grommunio.core.fullname" .)) }}
+        {{- end }}
+        {{- if .Values.core.persistence.variables.enabled }}
+        - name: variables
+          persistentVolumeClaim:
+            claimName: {{ .Values.core.persistence.variables.existingClaim | default (printf "%s-variables" (include "grommunio.core.fullname" .)) }}
+        {{- end }}
+        {{- if .Values.core.persistence.certs.enabled }}
+        - name: certs
+          persistentVolumeClaim:
+            claimName: {{ .Values.core.persistence.certs.existingClaim | default (printf "%s-certs" (include "grommunio.core.fullname" .)) }}
+        {{- end }}
+{{- end }}

@@ -1,0 +1,58 @@
+{{/*
+PVCs for core component - only created if persistence is enabled and no existing claim is specified
+*/}}
+
+{{- if .Values.core.enabled }}
+
+{{- if and .Values.core.persistence.data.enabled (not .Values.core.persistence.data.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "grommunio.core.fullname" . }}-data
+  labels:
+    {{- include "grommunio.core.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.core.persistence.data.accessModes | nindent 4 }}
+  {{- include "grommunio.storageClass" (dict "global" .Values.global.storageClass "local" .Values.core.persistence.data.storageClass) | nindent 2 }}
+  resources:
+    requests:
+      storage: {{ .Values.core.persistence.data.size | quote }}
+{{- end }}
+
+{{- if and .Values.core.persistence.variables.enabled (not .Values.core.persistence.variables.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "grommunio.core.fullname" . }}-variables
+  labels:
+    {{- include "grommunio.core.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.core.persistence.variables.accessModes | nindent 4 }}
+  {{- include "grommunio.storageClass" (dict "global" .Values.global.storageClass "local" .Values.core.persistence.variables.storageClass) | nindent 2 }}
+  resources:
+    requests:
+      storage: {{ .Values.core.persistence.variables.size | quote }}
+{{- end }}
+
+{{- if and .Values.core.persistence.certs.enabled (not .Values.core.persistence.certs.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "grommunio.core.fullname" . }}-certs
+  labels:
+    {{- include "grommunio.core.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.core.persistence.certs.accessModes | nindent 4 }}
+  {{- include "grommunio.storageClass" (dict "global" .Values.global.storageClass "local" .Values.core.persistence.certs.storageClass) | nindent 2 }}
+  resources:
+    requests:
+      storage: {{ .Values.core.persistence.certs.size | quote }}
+{{- end }}
+
+{{- end }}

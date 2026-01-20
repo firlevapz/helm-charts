@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stalwart.fullname" . }}-nodeport
+  labels:
+    {{- include "stalwart.labels" . | nindent 4 }}
+spec:
+  type: NodePort
+  selector:
+    {{- include "stalwart.selectorLabels" . | nindent 4 }}
+  ports:
+    {{- range $name, $port := .Values.service.nodePorts }}
+    - name: {{ $name }}
+      port: {{ $port }}
+      targetPort: {{ $port }}
+      nodePort: {{ $port }}
+    {{- end }}

@@ -1,0 +1,21 @@
+{{- if .Values.office.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grommunio.office.fullname" . }}
+  labels:
+    {{- include "grommunio.office.labels" . | nindent 4 }}
+  {{- with .Values.office.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.office.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.office.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "grommunio.office.selectorLabels" . | nindent 4 }}
+{{- end }}

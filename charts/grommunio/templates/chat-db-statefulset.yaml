@@ -1,0 +1,90 @@
+{{- if .Values.databases.chat.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "grommunio.chatDb.fullname" . }}
+  labels:
+    {{- include "grommunio.chatDb.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "grommunio.chatDb.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "grommunio.chatDb.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "grommunio.chatDb.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "grommunio.imagePullSecrets" . | nindent 6 }}
+      containers:
+        - name: mariadb
+          image: "{{ .Values.databases.chat.image.repository }}:{{ .Values.databases.chat.image.tag }}"
+          imagePullPolicy: {{ .Values.databases.chat.image.pullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.chatDb.secretName" . }}
+                  key: {{ .Values.databases.chat.existingSecretRootPasswordKey | default "mariadb-root-password" }}
+            - name: MARIADB_DATABASE
+              value: {{ .Values.databases.chat.database | quote }}
+            - name: MARIADB_USER
+              value: {{ .Values.databases.chat.user | quote }}
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.chatDb.secretName" . }}
+                  key: {{ .Values.databases.chat.existingSecretPasswordKey | default "mariadb-password" }}
+          {{- if .Values.databases.chat.healthcheck.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - mariadb --host=localhost --user=${MARIADB_USER} --password=${MARIADB_PASSWORD} -e 'SELECT 1;'
+            initialDelaySeconds: {{ .Values.databases.chat.healthcheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.databases.chat.healthcheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.databases.chat.healthcheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.databases.chat.healthcheck.failureThreshold }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - mariadb --host=localhost --user=${MARIADB_USER} --password=${MARIADB_PASSWORD} -e 'SELECT 1;'
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{- end }}
+          {{- with .Values.databases.chat.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+  {{- if .Values.databases.chat.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "grommunio.chatDb.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.databases.chat.persistence.accessModes | nindent 10 }}
+        {{- include "grommunio.storageClass" (dict "global" .Values.global.storageClass "local" .Values.databases.chat.persistence.storageClass) | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.databases.chat.persistence.size | quote }}
+  {{- else }}
+      volumes:
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}

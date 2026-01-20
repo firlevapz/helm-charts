@@ -1,0 +1,107 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+=============================================================================
+IMPORTANT: Before deploying, ensure you have:
+=============================================================================
+
+1. Built and pushed your custom grommunio container images:
+   - core.image.repository: {{ .Values.core.image.repository | default "NOT SET - REQUIRED" }}
+   - archive.image.repository: {{ .Values.archive.image.repository | default "NOT SET - REQUIRED" }}
+   - office.image.repository: {{ .Values.office.image.repository | default "NOT SET - REQUIRED" }}
+
+2. Set database passwords (either in values or via existingSecret):
+   {{- if and .Values.databases.gromox.enabled (not .Values.databases.gromox.existingSecret) }}
+   - databases.gromox.rootPassword: {{ if .Values.databases.gromox.rootPassword }}SET{{ else }}NOT SET - REQUIRED{{ end }}
+   - databases.gromox.password: {{ if .Values.databases.gromox.password }}SET{{ else }}NOT SET - REQUIRED{{ end }}
+   {{- end }}
+
+=============================================================================
+ACCESSING GROMMUNIO
+=============================================================================
+
+{{- if .Values.ingress.enabled }}
+
+Grommunio is accessible via Ingress:
+
+{{- if .Values.ingress.web.enabled }}
+  Web Interface: https://{{ .Values.ingress.web.host }}
+{{- end }}
+{{- if .Values.ingress.admin.enabled }}
+  Admin Interface: https://{{ .Values.ingress.admin.host }}
+{{- end }}
+
+{{- else }}
+
+To access grommunio, you can use port-forwarding:
+
+  # Web Interface (HTTPS)
+  kubectl port-forward svc/{{ include "grommunio.core.fullname" . }} 8443:{{ .Values.core.service.web.port }} -n {{ .Release.Namespace }}
+  Then visit: https://localhost:8443
+
+  # Admin Interface
+  kubectl port-forward svc/{{ include "grommunio.core.fullname" . }} 9443:{{ .Values.core.service.admin.port }} -n {{ .Release.Namespace }}
+  Then visit: https://localhost:9443
+
+{{- end }}
+
+=============================================================================
+SERVICES DEPLOYED
+=============================================================================
+
+Core Services:
+{{- if .Values.core.enabled }}
+  - {{ include "grommunio.core.fullname" . }} (Main Application)
+{{- end }}
+{{- if .Values.archive.enabled }}
+  - {{ include "grommunio.archive.fullname" . }} (Archive Service)
+{{- end }}
+{{- if .Values.office.enabled }}
+  - {{ include "grommunio.office.fullname" . }} (Office Service)
+{{- end }}
+
+Databases:
+{{- if .Values.databases.gromox.enabled }}
+  - {{ include "grommunio.gromoxDb.fullname" . }} (Main Database)
+{{- end }}
+{{- if .Values.databases.chat.enabled }}
+  - {{ include "grommunio.chatDb.fullname" . }} (Chat Database)
+{{- end }}
+{{- if .Values.databases.files.enabled }}
+  - {{ include "grommunio.filesDb.fullname" . }} (Files Database)
+{{- end }}
+{{- if .Values.databases.office.enabled }}
+  - {{ include "grommunio.officeDb.fullname" . }} (Office Database)
+{{- end }}
+{{- if .Values.databases.archive.enabled }}
+  - {{ include "grommunio.archiveDb.fullname" . }} (Archive Database)
+{{- end }}
+
+=============================================================================
+USEFUL COMMANDS
+=============================================================================
+
+# Check the status of all pods
+kubectl get pods -n {{ .Release.Namespace }} -l "app.kubernetes.io/instance={{ .Release.Name }}"
+
+# View logs for the core service
+kubectl logs -f deployment/{{ include "grommunio.core.fullname" . }} -n {{ .Release.Namespace }}
+
+# Check database connectivity
+kubectl exec -it statefulset/{{ include "grommunio.gromoxDb.fullname" . }} -n {{ .Release.Namespace }} -- mariadb -u {{ .Values.databases.gromox.user }} -p
+
+=============================================================================
+NOTES
+=============================================================================
+
+- The original docker-compose used sysbox-runc runtime which may require
+  special configuration in your Kubernetes cluster.
+
+- SYS_ADMIN and SYS_RESOURCE capabilities are disabled by default for
+  security. Enable them in values.yaml if required by your use case.
+
+- Make sure your storage class supports the access modes specified in values.
+
+For more information, visit: https://grommunio.com

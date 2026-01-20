@@ -1,0 +1,21 @@
+{{- if .Values.archive.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grommunio.archive.fullname" . }}
+  labels:
+    {{- include "grommunio.archive.labels" . | nindent 4 }}
+  {{- with .Values.archive.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.archive.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.archive.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "grommunio.archive.selectorLabels" . | nindent 4 }}
+{{- end }}

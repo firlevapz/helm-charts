@@ -1,0 +1,17 @@
+{{- if .Values.databases.archive.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "grommunio.archiveDb.fullname" . }}
+  labels:
+    {{- include "grommunio.archiveDb.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+      protocol: TCP
+  selector:
+    {{- include "grommunio.archiveDb.selectorLabels" . | nindent 4 }}
+{{- end }}

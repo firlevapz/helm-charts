@@ -1,0 +1,90 @@
+{{- if .Values.databases.office.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "grommunio.officeDb.fullname" . }}
+  labels:
+    {{- include "grommunio.officeDb.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "grommunio.officeDb.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "grommunio.officeDb.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "grommunio.officeDb.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- include "grommunio.imagePullSecrets" . | nindent 6 }}
+      containers:
+        - name: mariadb
+          image: "{{ .Values.databases.office.image.repository }}:{{ .Values.databases.office.image.tag }}"
+          imagePullPolicy: {{ .Values.databases.office.image.pullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.officeDb.secretName" . }}
+                  key: {{ .Values.databases.office.existingSecretRootPasswordKey | default "mariadb-root-password" }}
+            - name: MARIADB_DATABASE
+              value: {{ .Values.databases.office.database | quote }}
+            - name: MARIADB_USER
+              value: {{ .Values.databases.office.user | quote }}
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "grommunio.officeDb.secretName" . }}
+                  key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-password" }}
+          {{- if .Values.databases.office.healthcheck.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - mariadb --host=localhost --user=${MARIADB_USER} --password=${MARIADB_PASSWORD} -e 'SELECT 1;'
+            initialDelaySeconds: {{ .Values.databases.office.healthcheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.databases.office.healthcheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.databases.office.healthcheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.databases.office.healthcheck.failureThreshold }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - mariadb --host=localhost --user=${MARIADB_USER} --password=${MARIADB_PASSWORD} -e 'SELECT 1;'
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{- end }}
+          {{- with .Values.databases.office.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+  {{- if .Values.databases.office.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "grommunio.officeDb.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.databases.office.persistence.accessModes | nindent 10 }}
+        {{- include "grommunio.storageClass" (dict "global" .Values.global.storageClass "local" .Values.databases.office.persistence.storageClass) | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.databases.office.persistence.size | quote }}
+  {{- else }}
+      volumes:
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}
