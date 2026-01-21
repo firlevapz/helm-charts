@@ -12,10 +12,32 @@ IMPORTANT: Before deploying, ensure you have:
    - archive.image.repository: {{ .Values.archive.image.repository | default "NOT SET - REQUIRED" }}
    - office.image.repository: {{ .Values.office.image.repository | default "NOT SET - REQUIRED" }}
 
-2. Set database passwords (either in values or via existingSecret):
+2. Database passwords:
    {{- if and .Values.databases.gromox.enabled (not .Values.databases.gromox.existingSecret) }}
-   - databases.gromox.rootPassword: {{ if .Values.databases.gromox.rootPassword }}SET{{ else }}NOT SET - REQUIRED{{ end }}
-   - databases.gromox.password: {{ if .Values.databases.gromox.password }}SET{{ else }}NOT SET - REQUIRED{{ end }}
+   {{- if .Values.databases.gromox.rootPassword }}
+   - databases.gromox: Passwords SET from values
+   {{- else }}
+   - databases.gromox: Auto-generated passwords (retrieve with commands below)
+   {{- end }}
+   {{- end }}
+   {{- if and .Values.databases.chat.enabled (not .Values.databases.chat.existingSecret) }}
+   {{- if .Values.databases.chat.rootPassword }}
+   - databases.chat: Passwords SET from values
+   {{- else }}
+   - databases.chat: Auto-generated passwords (retrieve with commands below)
+   {{- end }}
+   {{- end }}
+
+   To retrieve auto-generated database passwords:
+   {{- if and .Values.databases.gromox.enabled (not .Values.databases.gromox.existingSecret) (not .Values.databases.gromox.rootPassword) }}
+
+   # Gromox DB root password:
+   kubectl get secret {{ include "grommunio.gromoxDb.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath="{.data.mariadb-root-password}" | base64 -d
+   {{- end }}
+   {{- if and .Values.databases.chat.enabled (not .Values.databases.chat.existingSecret) (not .Values.databases.chat.rootPassword) }}
+
+   # Chat DB root password:
+   kubectl get secret {{ include "grommunio.chatDb.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath="{.data.mariadb-root-password}" | base64 -d
    {{- end }}
 
 =============================================================================

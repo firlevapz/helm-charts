@@ -23,11 +23,11 @@ databases:
       repository: mariadb
       tag: "10"
       pullPolicy: IfNotPresent
-    # -- Database credentials
-    rootPassword: ""  # Set via secret or values
+    # -- Database credentials (auto-generated if left empty)
+    rootPassword: "" # Leave empty for auto-generated password
     database: grommunio
     user: grommunio
-    password: ""  # Set via secret or values
+    password: "" # Leave empty for auto-generated password
     # -- Use existing secret for credentials
     existingSecret: ""
     existingSecretRootPasswordKey: "mariadb-root-password"
@@ -58,14 +58,17 @@ databases:
   # -- Chat database
   chat:
     enabled: true
+    # -- Set the runtime class for the chat-db StatefulSet (e.g., sysbox-runc for enhanced isolation)
+    runtimeClassName: sysbox-runc
     image:
       repository: mariadb
       tag: "10"
       pullPolicy: IfNotPresent
-    rootPassword: ""
+    # -- Database credentials (auto-generated if left empty)
+    rootPassword: "" # Leave empty for auto-generated password
     database: grochat
     user: grochat
-    password: ""
+    password: "" # Leave empty for auto-generated password
     existingSecret: ""
     existingSecretRootPasswordKey: "mariadb-root-password"
     existingSecretPasswordKey: "mariadb-password"
@@ -96,10 +99,11 @@ databases:
       repository: mariadb
       tag: "10"
       pullPolicy: IfNotPresent
-    rootPassword: ""
+    # -- Database credentials (auto-generated if left empty)
+    rootPassword: "" # Leave empty for auto-generated password
     database: grofiles
     user: grofiles
-    password: ""
+    password: "" # Leave empty for auto-generated password
     existingSecret: ""
     existingSecretRootPasswordKey: "mariadb-root-password"
     existingSecretPasswordKey: "mariadb-password"
@@ -130,10 +134,11 @@ databases:
       repository: mariadb
       tag: "10"
       pullPolicy: IfNotPresent
-    rootPassword: ""
+    # -- Database credentials (auto-generated if left empty)
+    rootPassword: "" # Leave empty for auto-generated password
     database: groffice
     user: groffice
-    password: ""
+    password: "" # Leave empty for auto-generated password
     existingSecret: ""
     existingSecretRootPasswordKey: "mariadb-root-password"
     existingSecretPasswordKey: "mariadb-password"
@@ -164,10 +169,11 @@ databases:
       repository: mariadb
       tag: "10"
       pullPolicy: IfNotPresent
-    rootPassword: ""
+    # -- Database credentials (auto-generated if left empty)
+    rootPassword: "" # Leave empty for auto-generated password
     database: groarchive
     user: groarchive
-    password: ""
+    password: "" # Leave empty for auto-generated password
     existingSecret: ""
     existingSecretRootPasswordKey: "mariadb-root-password"
     existingSecretPasswordKey: "mariadb-password"
@@ -198,9 +204,11 @@ databases:
 # -- Core grommunio application
 core:
   enabled: true
+  # -- Set the runtime class for the core Deployment (e.g., sysbox-runc for enhanced isolation)
+  runtimeClassName: sysbox-runc
   image:
     # -- Container image repository (set to your custom built image)
-    repository: ""  # e.g., ghcr.io/your-org/gromox-core
+    repository: "" # e.g., ghcr.io/your-org/gromox-core
     tag: "latest"
     pullPolicy: IfNotPresent
 
@@ -332,7 +340,7 @@ core:
 archive:
   enabled: true
   image:
-    repository: ""  # e.g., ghcr.io/your-org/gromox-archive
+    repository: "" # e.g., ghcr.io/your-org/gromox-archive
     tag: "latest"
     pullPolicy: IfNotPresent
 
@@ -377,8 +385,10 @@ archive:
 # -- Office service
 office:
   enabled: true
+  # -- Set the runtime class for the office Deployment (e.g., sysbox-runc for enhanced isolation)
+  runtimeClassName: sysbox-runc
   image:
-    repository: ""  # e.g., ghcr.io/your-org/gromox-office
+    repository: "" # e.g., ghcr.io/your-org/gromox-office
     tag: "latest"
     pullPolicy: IfNotPresent
 

@@ -83,21 +83,43 @@ helm install grommunio ./chart -n grommunio --create-namespace -f my-values.yaml
 
 ### Database Credentials
 
-Set database passwords either directly in values or use existing secrets:
+Database passwords are handled in three ways:
 
 ```yaml
-# Option 1: Direct values (not recommended for production)
+# Option 1: Auto-generated passwords (default)
+# Leave passwords empty and they will be auto-generated
+databases:
+  gromox:
+    rootPassword: ""
+    password: ""
+
+# Option 2: Direct values (not recommended for production)
 databases:
   gromox:
     rootPassword: "secure-root-password"
     password: "secure-password"
 
-# Option 2: Use existing secrets (recommended)
+# Option 3: Use existing secrets (recommended for production)
 databases:
   gromox:
     existingSecret: "my-gromox-db-secret"
     existingSecretRootPasswordKey: "mariadb-root-password"
     existingSecretPasswordKey: "mariadb-password"
+```
+
+#### Retrieving Auto-Generated Passwords
+
+If you left passwords empty (auto-generated), retrieve them with:
+
+```bash
+# Gromox DB root password
+kubectl get secret <release-name>-gromox-db -n grommunio -o jsonpath="{.data.mariadb-root-password}" | base64 -d
+
+# Chat DB root password
+kubectl get secret <release-name>-chat-db -n grommunio -o jsonpath="{.data.mariadb-root-password}" | base64 -d
+
+# User passwords
+kubectl get secret <release-name>-gromox-db -n grommunio -o jsonpath="{.data.mariadb-password}" | base64 -d
 ```
 
 ### Ingress
