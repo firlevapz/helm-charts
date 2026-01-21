@@ -329,6 +329,7 @@ core:
 # -- Archive service
 archive:
   enabled: true
+  # -- Set the runtime class for the archive Deployment (e.g., sysbox-runc for enhanced isolation)
   runtimeClassName: sysbox-runc
   image:
     repository: "ghcr.io/firlevapz/gromox-container-gromox-archive" # e.g., ghcr.io/your-org/gromox-archive

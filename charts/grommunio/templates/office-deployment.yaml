@@ -12,6 +12,10 @@ spec:
       {{- include "grommunio.office.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- if or (eq (.Values.office.runtimeClassName | default "sysbox-runc") "sysbox-runc") (not .Values.office.runtimeClassName) }}
+      annotations:
+        io.kubernetes.cri-o.userns-mode: "auto:size=65536"
+      {{- end }}
       labels:
         {{- include "grommunio.office.selectorLabels" . | nindent 8 }}
     spec:
