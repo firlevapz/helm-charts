@@ -16,6 +16,11 @@ spec:
         {{- include "grommunio.archive.selectorLabels" . | nindent 8 }}
     spec:
       {{- include "grommunio.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.archive.runtimeClassName }}
+      runtimeClassName: {{ .Values.archive.runtimeClassName | quote }}
+      {{- else }}
+      runtimeClassName: "sysbox-runc"
+      {{- end }}
       serviceAccountName: {{ include "grommunio.serviceAccountName" . }}
       {{- with .Values.archive.podSecurityContext }}
       securityContext:

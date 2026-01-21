@@ -17,11 +17,6 @@ spec:
         {{- include "grommunio.chatDb.selectorLabels" . | nindent 8 }}
     spec:
       {{- include "grommunio.imagePullSecrets" . | nindent 6 }}
-      {{- if .Values.databases.chat.runtimeClassName }}
-      runtimeClassName: {{ .Values.databases.chat.runtimeClassName }}
-      {{- else }}
-      runtimeClassName: sysbox-runc
-      {{- end }}
       containers:
         - name: mariadb
           image: "{{ .Values.databases.chat.image.repository }}:{{ .Values.databases.chat.image.tag }}"

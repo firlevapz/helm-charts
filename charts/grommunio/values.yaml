@@ -57,8 +57,6 @@ databases:
   # -- Chat database
   chat:
     enabled: true
-    # -- Set the runtime class for the chat-db StatefulSet (e.g., sysbox-runc for enhanced isolation)
-    runtimeClassName: sysbox-runc
     image:
       repository: mariadb
       tag: "10"
@@ -202,7 +200,7 @@ core:
   runtimeClassName: sysbox-runc
   image:
     # -- Container image repository (set to your custom built image)
-    repository: "" # e.g., ghcr.io/your-org/gromox-core
+    repository: "ghcr.io/firlevapz/gromox-container-gromox-core" # e.g., ghcr.io/your-org/gromox-core
     tag: "latest"
     pullPolicy: IfNotPresent
 
@@ -331,8 +329,9 @@ core:
 # -- Archive service
 archive:
   enabled: true
+  runtimeClassName: sysbox-runc
   image:
-    repository: "" # e.g., ghcr.io/your-org/gromox-archive
+    repository: "ghcr.io/firlevapz/gromox-container-gromox-archive" # e.g., ghcr.io/your-org/gromox-archive
     tag: "latest"
     pullPolicy: IfNotPresent
 
@@ -379,7 +378,7 @@ office:
   # -- Set the runtime class for the office Deployment (e.g., sysbox-runc for enhanced isolation)
   runtimeClassName: sysbox-runc
   image:
-    repository: "" # e.g., ghcr.io/your-org/gromox-office
+    repository: "ghcr.io/firlevapz/gromox-container-gromox-office" # e.g., ghcr.io/your-org/gromox-office
     tag: "latest"
     pullPolicy: IfNotPresent
 
