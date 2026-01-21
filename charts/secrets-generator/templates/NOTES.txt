@@ -1,0 +1,57 @@
+Thank you for installing {{ .Chart.Name }}!
+
+{{- if .Values.secrets }}
+
+The following secrets have been generated:
+
+{{- range .Values.secrets }}
+  - {{ .name }} (in namespace: {{ .namespace | default $.Release.Namespace }})
+    {{- if .keys }}
+    Keys:
+    {{- range .keys }}
+      * {{ .name }}
+    {{- end }}
+    {{- end }}
+{{- end }}
+
+To retrieve the generated secret values, use:
+
+{{- range .Values.secrets }}
+
+  # For secret: {{ .name }}
+  kubectl get secret {{ .name }} -n {{ .namespace | default $.Release.Namespace }} -o yaml
+
+  {{- if .keys }}
+  # To decode individual keys:
+  {{- $secretName := .name }}
+  {{- $secretNamespace := .namespace | default $.Release.Namespace }}
+  {{- range .keys }}
+  kubectl get secret {{ $secretName }} -n {{ $secretNamespace }} -o jsonpath='{.data.{{ .name }}}' | base64 -d
+  {{- end }}
+  {{- end }}
+{{- end }}
+
+IMPORTANT: These secrets are generated at installation time and will remain stable
+across upgrades. If you need to regenerate the secrets, you must delete them first
+and then perform a helm upgrade.
+
+{{- else }}
+
+No secrets configured. Please configure secrets in your values.yaml file.
+
+Example configuration:
+
+secrets:
+  - name: my-secret
+    keys:
+      - name: admin-username
+        prefix: "admin_"
+        length: 6
+      - name: admin-password
+        length: 32
+      - name: password
+        length: 32
+
+{{- end }}
+
+For more information, visit: https://github.com/your-org/helm-charts

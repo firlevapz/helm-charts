@@ -1,0 +1,25 @@
+# Example values file for database credentials
+# This configuration generates multiple database-related secrets
+
+secrets:
+  - name: mariadb-passwords
+    keys:
+      - name: mariadb-root-password
+        length: 32
+      - name: mariadb-password
+        length: 32
+      - name: mariadb-replication-password
+        length: 32
+
+  - name: postgres-credentials
+    keys:
+      - name: postgres-password
+        length: 32
+      - name: replication-password
+        length: 32
+
+  - name: redis-auth
+    keys:
+      - name: redis-password
+        length: 32
+        charset: alphanumeric

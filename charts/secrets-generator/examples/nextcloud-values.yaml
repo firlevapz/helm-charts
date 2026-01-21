@@ -1,0 +1,18 @@
+# Example values file for Nextcloud secrets
+# This configuration generates a secret named "nextcloud-sealed-secrets"
+# with admin credentials similar to:
+# kubectl create secret generic nextcloud-sealed-secrets \
+#   --from-literal=admin-username=admin_$(openssl rand -base64 6) \
+#   --from-literal=admin-password=$(openssl rand -base64 32) \
+#   --from-literal=password=$(openssl rand -base64 32)
+
+secrets:
+  - name: nextcloud-sealed-secrets
+    keys:
+      - name: admin-username
+        prefix: "admin_"
+        length: 6
+      - name: admin-password
+        length: 32
+      - name: password
+        length: 32

@@ -1,0 +1,55 @@
+# Default values for secrets-generator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# You can define multiple secrets to generate
+secrets: []
+  # Example single secret configuration:
+  # - name: my-secret
+  #   namespace: default  # Optional: defaults to release namespace
+  #   type: Opaque  # Optional: defaults to Opaque
+  #   keys:
+  #     - name: admin-username
+  #       prefix: "admin_"
+  #       length: 6
+  #     - name: admin-password
+  #       length: 32
+  #     - name: password
+  #       length: 32
+  #       suffix: "!"
+  #     - name: api-key
+  #       length: 48
+  #       charset: "alphanumeric"  # Options: base64 (default), alphanumeric, hex
+
+# Example configuration for nextcloud:
+# secrets:
+#   - name: nextcloud-sealed-secrets
+#     keys:
+#       - name: admin-username
+#         prefix: "admin_"
+#         length: 6
+#       - name: admin-password
+#         length: 32
+#       - name: password
+#         length: 32
+
+# Example configuration for multiple secrets:
+# secrets:
+#   - name: database-credentials
+#     keys:
+#       - name: db-root-password
+#         length: 32
+#       - name: db-user-password
+#         length: 32
+#   - name: api-keys
+#     keys:
+#       - name: admin-api-key
+#         length: 48
+#       - name: user-api-key
+#         length: 48
+
+# Annotations to add to the secrets
+annotations: {}
+
+# Labels to add to the secrets
+labels: {}

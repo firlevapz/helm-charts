@@ -1,0 +1,37 @@
+# Example values file for API keys and tokens
+# This configuration generates secrets with various API credentials
+
+secrets:
+  - name: api-credentials
+    keys:
+      - name: admin-api-key
+        length: 48
+        charset: alphanumeric
+      - name: user-api-key
+        length: 48
+        charset: alphanumeric
+      - name: webhook-secret
+        length: 64
+        charset: hex
+      - name: jwt-secret
+        length: 64
+        charset: base64
+
+  - name: external-services
+    keys:
+      - name: stripe-api-key
+        prefix: "sk_live_"
+        length: 32
+        charset: alphanumeric
+      - name: sendgrid-api-key
+        prefix: "SG."
+        length: 48
+        charset: alphanumeric
+      - name: oauth-client-secret
+        length: 32
+        charset: alphanumeric
+
+# Add labels to track which secrets are API keys
+labels:
+  type: api-credentials
+  managed-by: secrets-generator

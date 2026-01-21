@@ -1,0 +1,110 @@
+# Comprehensive test values file for secrets-generator chart
+# This file demonstrates all features and options available
+
+secrets:
+  # Example 1: Basic secret with default settings
+  - name: basic-secret
+    keys:
+      - name: simple-password
+        length: 32
+
+  # Example 2: Secret with prefixes and suffixes
+  - name: prefixed-secret
+    keys:
+      - name: admin-username
+        prefix: "admin_"
+        length: 8
+      - name: api-token
+        prefix: "Bearer_"
+        length: 48
+        suffix: "_prod"
+
+  # Example 3: Different character sets
+  - name: charset-examples
+    keys:
+      - name: base64-key
+        length: 32
+        charset: base64
+      - name: alphanumeric-key
+        length: 32
+        charset: alphanumeric
+      - name: hex-key
+        length: 32
+        charset: hex
+
+  # Example 4: Secret in a different namespace
+  - name: namespaced-secret
+    namespace: production
+    keys:
+      - name: database-password
+        length: 32
+
+  # Example 5: Non-Opaque secret type
+  - name: docker-registry-secret
+    type: kubernetes.io/dockerconfigjson
+    keys:
+      - name: .dockerconfigjson
+        length: 64
+
+  # Example 6: Multiple keys with varying lengths
+  - name: multi-key-secret
+    keys:
+      - name: short-pin
+        length: 6
+        charset: alphanumeric
+      - name: medium-password
+        length: 16
+      - name: long-token
+        length: 64
+      - name: very-long-key
+        length: 128
+
+  # Example 7: Realistic application secrets
+  - name: nextcloud-credentials
+    keys:
+      - name: admin-username
+        prefix: "admin_"
+        length: 6
+      - name: admin-password
+        length: 32
+      - name: database-password
+        length: 32
+      - name: redis-password
+        length: 32
+
+  - name: mariadb-passwords
+    keys:
+      - name: mariadb-root-password
+        length: 32
+      - name: mariadb-password
+        length: 32
+      - name: mariadb-replication-password
+        length: 32
+
+  - name: api-keys
+    keys:
+      - name: admin-api-key
+        prefix: "sk_live_"
+        length: 48
+        charset: alphanumeric
+      - name: webhook-secret
+        length: 64
+        charset: hex
+      - name: oauth-client-id
+        length: 32
+        charset: alphanumeric
+      - name: oauth-client-secret
+        length: 32
+        charset: alphanumeric
+
+# Global annotations to add to all secrets
+annotations:
+  description: "Auto-generated secrets for testing"
+  managed-by: "secrets-generator-chart"
+  generated-at: "2024-01-01"
+
+# Global labels to add to all secrets
+labels:
+  environment: development
+  project: secrets-generator-test
+  managed-by: helm
