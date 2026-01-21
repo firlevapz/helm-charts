@@ -211,7 +211,7 @@ core:
   securityContext:
     # -- Note: SYS_ADMIN capability requires privileged containers
     # This may not work in all Kubernetes environments
-    privileged: true
+    privileged: false
     allowPrivilegeEscalation: true
     capabilities:
       add:
@@ -341,7 +341,7 @@ archive:
   securityContext:
     # -- Note: SYS_ADMIN capability requires privileged containers
     # This may not work in all Kubernetes environments
-    privileged: true
+    privileged: false
     allowPrivilegeEscalation: true
     capabilities:
       add:
@@ -393,7 +393,7 @@ office:
   securityContext:
     # -- Note: SYS_ADMIN capability requires privileged containers
     # This may not work in all Kubernetes environments
-    privileged: true
+    privileged: false
     allowPrivilegeEscalation: true
     capabilities:
       add:
