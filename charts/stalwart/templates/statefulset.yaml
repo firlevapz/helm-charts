@@ -40,10 +40,6 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -61,14 +57,16 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
-          - containerPort: 8080
-          - containerPort: 443
-          - containerPort: 25
-          - containerPort: 587
-          - containerPort: 465
-          - containerPort: 143
-          - containerPort: 993
-          - containerPort: 4190
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - containerPort: 443
+            - containerPort: 25
+            - containerPort: 587
+            - containerPort: 465
+            - containerPort: 143
+            - containerPort: 993
+            - containerPort: 4190
 
       {{- with .Values.nodeSelector }}
       nodeSelector:
