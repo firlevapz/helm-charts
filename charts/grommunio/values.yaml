@@ -211,12 +211,11 @@ core:
   securityContext:
     # -- Note: SYS_ADMIN capability requires privileged containers
     # This may not work in all Kubernetes environments
-    privileged: false
+    privileged: true
     capabilities:
-      add: []
-      # Uncomment if your cluster supports these capabilities:
-      # - SYS_ADMIN
-      # - SYS_RESOURCE
+      add:
+        - SYS_ADMIN
+        - SYS_RESOURCE
 
   # -- Pod security context
   podSecurityContext:
@@ -339,9 +338,13 @@ archive:
   replicaCount: 1
 
   securityContext:
-    privileged: false
+    # -- Note: SYS_ADMIN capability requires privileged containers
+    # This may not work in all Kubernetes environments
+    privileged: true
     capabilities:
-      add: []
+      add:
+        - SYS_ADMIN
+        - SYS_RESOURCE
 
   podSecurityContext:
     fsGroup: 1000
@@ -386,9 +389,13 @@ office:
   replicaCount: 1
 
   securityContext:
-    privileged: false
+    # -- Note: SYS_ADMIN capability requires privileged containers
+    # This may not work in all Kubernetes environments
+    privileged: true
     capabilities:
-      add: []
+      add:
+        - SYS_ADMIN
+        - SYS_RESOURCE
 
   podSecurityContext:
     fsGroup: 1000
