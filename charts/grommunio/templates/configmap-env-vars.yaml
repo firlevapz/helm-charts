@@ -1,0 +1,13 @@
+{{- if .Values.config }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grommunio.fullname" . }}-env-vars
+  labels:
+    {{- include "grommunio.labels" . | nindent 4 }}
+data:
+  var.env: |
+    {{- range $key, $value := .Values.config }}
+    {{ $key }}={{ $value }}
+    {{- end }}
+{{- end }}

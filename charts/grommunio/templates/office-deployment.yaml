@@ -76,46 +76,7 @@ spec:
               containerPort: 80
               protocol: TCP
           env:
-            # Database connection info for gromox-db
-            - name: GROMOX_DB_HOST
-              value: {{ include "grommunio.gromoxDb.fullname" . }}
-            - name: GROMOX_DB_NAME
-              value: {{ .Values.databases.gromox.database | quote }}
-            - name: GROMOX_DB_USER
-              value: {{ .Values.databases.gromox.user | quote }}
-            - name: GROMOX_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "grommunio.gromoxDb.secretName" . }}
-                  key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-password" }}
-            {{- if .Values.databases.files.enabled }}
-            # Files database connection
-            - name: FILES_DB_HOST
-              value: {{ include "grommunio.filesDb.fullname" . }}
-            - name: FILES_DB_NAME
-              value: {{ .Values.databases.files.database | quote }}
-            - name: FILES_DB_USER
-              value: {{ .Values.databases.files.user | quote }}
-            - name: FILES_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "grommunio.filesDb.secretName" . }}
-                  key: {{ .Values.databases.files.existingSecretPasswordKey | default "mariadb-password" }}
-            {{- end }}
-            {{- if .Values.databases.office.enabled }}
-            # Office database connection
-            - name: OFFICE_DB_HOST
-              value: {{ include "grommunio.officeDb.fullname" . }}
-            - name: OFFICE_DB_NAME
-              value: {{ .Values.databases.office.database | quote }}
-            - name: OFFICE_DB_USER
-              value: {{ .Values.databases.office.user | quote }}
-            - name: OFFICE_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "grommunio.officeDb.secretName" . }}
-                  key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-password" }}
-            {{- end }}
+            {{ include "grommunio.envVars" . }}
             {{- range $key, $value := .Values.office.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
@@ -171,6 +132,11 @@ spec:
             - name: certs
               mountPath: /etc/grommunio-common/ssl
             {{- end }}
+            {{- if .Values.config }}
+            - name: env-vars
+              mountPath: /home/vars/var.env
+              subPath: var.env
+            {{- end }}
       volumes:
         {{- if .Values.core.persistence.data.enabled }}
         - name: data
@@ -186,5 +152,10 @@ spec:
         - name: certs
           persistentVolumeClaim:
             claimName: {{ .Values.core.persistence.certs.existingClaim | default (printf "%s-certs" (include "grommunio.core.fullname" .)) }}
+        {{- end }}
+        {{- if .Values.config }}
+        - name: env-vars
+          configMap:
+            name: {{ include "grommunio.fullname" . }}-env-vars
         {{- end }}
 {{- end }}

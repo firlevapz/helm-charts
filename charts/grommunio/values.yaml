@@ -11,9 +11,42 @@ global:
 # -- Namespace to deploy into
 namespace: grommunio
 
-# =============================================================================
+# : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : :
 # Database configurations
-# =============================================================================
+# : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : :
+
+config:
+  ORIGFQDN: mail.pallas.grommun.io
+  FQDN: mail.pallas.grommun.io
+  ORIGDOMAIN: pallas.grommun.io
+  DOMAIN: pallas.grommun.io
+  RELAYHOST: ""
+
+  REPO_USER: "your_repo_user"
+  REPO_PASS: "your_repo_password"
+
+  CLEAR_DBS: "true"
+
+  LOGFILE: "/var/log/grommunio-setup.log"
+
+  CHAT_CONFIG: "/etc/grommunio-chat/config.json"
+
+  ORGANIZATION: "grommunio"
+  TIMEZONE: "Europe/Vienna"
+  HTTP_PROXY_USER: "localhost"
+  HTTP_PROXY_DOMAIN: "localhost"
+
+  #Choose Install type, 0 for self signed and 2 for letsencrypt.
+  SSL_INSTALL_TYPE: 0
+
+  SSL_COUNTRY: "XX"
+  SSL_STATE: "XX"
+  SSL_LOCALITY: "X"
+  SSL_ORG: "grommunio Appliance"
+  SSL_OU: "IT"
+  SSL_EMAIL: "admin@${DOMAIN}"
+  SSL_DAYS: 30
+  SSL_PASS: grommunio
 
 databases:
   # -- Main grommunio database
@@ -189,9 +222,7 @@ databases:
       timeoutSeconds: 10
       failureThreshold: 5
 
-# =============================================================================
 # Application configurations
-# =============================================================================
 
 # -- Core grommunio application
 core:
@@ -430,9 +461,7 @@ office:
   readinessProbe:
     enabled: false
 
-# =============================================================================
 # Ingress configuration
-# =============================================================================
 
 ingress:
   enabled: false
@@ -462,10 +491,7 @@ ingress:
       enabled: true
       secretName: grommunio-admin-tls
 
-# =============================================================================
 # Service Account
-# =============================================================================
-
 serviceAccount:
   # -- Create service account
   create: true
@@ -474,10 +500,7 @@ serviceAccount:
   # -- Annotations
   annotations: {}
 
-# =============================================================================
 # Network Policies
-# =============================================================================
-
 networkPolicy:
   enabled: false
   # -- Additional ingress rules
@@ -485,10 +508,7 @@ networkPolicy:
   # -- Additional egress rules
   egress: []
 
-# =============================================================================
 # Pod Disruption Budget
-# =============================================================================
-
 podDisruptionBudget:
   enabled: false
   minAvailable: 1
