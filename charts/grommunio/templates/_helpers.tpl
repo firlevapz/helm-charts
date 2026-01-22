@@ -370,5 +370,53 @@ imagePullSecrets:
                   key: {{ .Values.databases.archive.existingSecretPasswordKey | default "mariadb-root-password" }}
             {{- end }}
 
+            # Archive service configuration
+            {{- if and .Values.archive.enabled .Values.databases.archive.enabled }}
+            - name: ENABLE_ARCHIVE
+              value: "true"
+            - name: ARCHIVE_HOST
+              value: {{ include "grommunio.archive.fullname" . }}
+            {{- else }}
+            - name: ENABLE_ARCHIVE
+              value: "false"
+            {{- end }}
+
+            # Office service configuration
+            {{- if and .Values.office.enabled .Values.databases.office.enabled }}
+            - name: ENABLE_OFFICE
+              value: "true"
+            - name: OFFICE_HOST
+              value: {{ include "grommunio.office.fullname" . }}
+            {{- else }}
+            - name: ENABLE_OFFICE
+              value: "false"
+            {{- end }}
+
+            # Files service configuration
+            {{- if and .Values.office.enabled .Values.databases.files.enabled }}
+            - name: ENABLE_FILES
+              value: "true"
+            - name: FILES_HOST
+              value: {{ include "grommunio.office.fullname" . }}
+            {{- else }}
+            - name: ENABLE_FILES
+              value: "false"
+            {{- end }}
+
+            - name: CHAT_ADMIN_PASS
+            valueFrom:
+                secretKeyRef:
+                name: {{ include "grommunio.fullname" . }}-admin
+                key: chat-admin-pass
+            - name: FILES_ADMIN_PASS
+            valueFrom:
+                secretKeyRef:
+                name: {{ include "grommunio.fullname" . }}-admin
+                key: files-admin-pass
+            - name: ADMIN_PASS
+            valueFrom:
+                secretKeyRef:
+                name: {{ include "grommunio.fullname" . }}-admin
+                key: admin-pass
 
 {{- end }}

@@ -28,7 +28,6 @@ config:
   CLEAR_DBS: "true"
 
   LOGFILE: "/var/log/grommunio-setup.log"
-
   CHAT_CONFIG: "/etc/grommunio-chat/config.json"
 
   ORGANIZATION: "grommunio"
