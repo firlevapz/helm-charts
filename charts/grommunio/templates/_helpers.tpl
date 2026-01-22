@@ -404,19 +404,19 @@ imagePullSecrets:
             {{- end }}
 
             - name: CHAT_ADMIN_PASS
-            valueFrom:
+              valueFrom:
                 secretKeyRef:
-                name: {{ include "grommunio.fullname" . }}-admin
-                key: chat-admin-pass
+                  name: {{ include "grommunio.fullname" . }}-admin
+                  key: chat-admin-pass
             - name: FILES_ADMIN_PASS
-            valueFrom:
+              valueFrom:
                 secretKeyRef:
-                name: {{ include "grommunio.fullname" . }}-admin
-                key: files-admin-pass
+                  name: {{ include "grommunio.fullname" . }}-admin
+                  key: files-admin-pass
             - name: ADMIN_PASS
-            valueFrom:
+              valueFrom:
                 secretKeyRef:
-                name: {{ include "grommunio.fullname" . }}-admin
-                key: admin-pass
+                  name: {{ include "grommunio.fullname" . }}-admin
+                  key: admin-pass
 
 {{- end }}
