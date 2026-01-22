@@ -280,12 +280,12 @@ imagePullSecrets:
 - name: MYSQL_USER
     value: {{ .Values.databases.gromox.user | quote }}
 - name: MYSQL_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.gromoxDb.secretName" . }}
         key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-password" }}
 - name: MYSQL_ROOT_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.gromoxDb.secretName" . }}
         key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-root-password" }}
@@ -299,12 +299,12 @@ imagePullSecrets:
 - name: CHAT_MYSQL_USER
     value: {{ .Values.databases.chat.user | quote }}
 - name: CHAT_MYSQL_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.chatDb.secretName" . }}
         key: {{ .Values.databases.chat.existingSecretPasswordKey | default "mariadb-password" }}
 - name: CHAT_MYSQL_ROOT_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.chatDb.secretName" . }}
         key: {{ .Values.databases.chat.existingSecretPasswordKey | default "mariadb-root-password" }}
@@ -319,12 +319,12 @@ imagePullSecrets:
 - name: FILES_MYSQL_USER
     value: {{ .Values.databases.files.user | quote }}
 - name: FILES_MYSQL_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.filesDb.secretName" . }}
         key: {{ .Values.databases.files.existingSecretPasswordKey | default "mariadb-password" }}
 - name: FILES_MYSQL_ROOT_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.filesDb.secretName" . }}
         key: {{ .Values.databases.files.existingSecretPasswordKey | default "mariadb-root-password" }}
@@ -339,12 +339,12 @@ imagePullSecrets:
 - name: OFFICE_MYSQL_USER
     value: {{ .Values.databases.office.user | quote }}
 - name: OFFICE_MYSQL_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.officeDb.secretName" . }}
         key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-password" }}
 - name: OFFICE_MYSQL_ROOT_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.officeDb.secretName" . }}
         key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-root-password" }}
@@ -359,12 +359,12 @@ imagePullSecrets:
 - name: ARCHIVE_MYSQL_USER
     value: {{ .Values.databases.archive.user | quote }}
 - name: ARCHIVE_MYSQL_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.archiveDb.secretName" . }}
         key: {{ .Values.databases.archive.existingSecretPasswordKey | default "mariadb-password" }}
 - name: ARCHIVE_MYSQL_ROOT_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.archiveDb.secretName" . }}
         key: {{ .Values.databases.archive.existingSecretPasswordKey | default "mariadb-root-password" }}
@@ -404,17 +404,17 @@ imagePullSecrets:
 {{- end }}
 
 - name: CHAT_ADMIN_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.fullname" . }}-admin
         key: chat-admin-pass
 - name: FILES_ADMIN_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.fullname" . }}-admin
         key: files-admin-pass
 - name: ADMIN_PASS
-    valueFrom:
+  valueFrom:
     secretKeyRef:
         name: {{ include "grommunio.fullname" . }}-admin
         key: admin-pass
