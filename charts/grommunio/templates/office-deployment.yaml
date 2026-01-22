@@ -76,7 +76,7 @@ spec:
               containerPort: 80
               protocol: TCP
           env:
-            {{ include "grommunio.envVars" . }}
+            {{ include "grommunio.envVars" . | nindent 12 }}
             {{- range $key, $value := .Values.office.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
@@ -84,8 +84,10 @@ spec:
             {{- with .Values.office.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- if .Values.office.envFromConfigMap }}
           envFrom:
+            - configMapRef:
+                name: {{ include "grommunio.fullname" . }}-env-vars
+          {{- if .Values.office.envFromConfigMap }}
             - configMapRef:
                 name: {{ .Values.office.envFromConfigMap }}
           {{- end }}
@@ -132,11 +134,6 @@ spec:
             - name: certs
               mountPath: /etc/grommunio-common/ssl
             {{- end }}
-            {{- if .Values.config }}
-            - name: env-vars
-              mountPath: /home/vars/var.env
-              subPath: var.env
-            {{- end }}
       volumes:
         {{- if .Values.core.persistence.data.enabled }}
         - name: data
@@ -152,10 +149,5 @@ spec:
         - name: certs
           persistentVolumeClaim:
             claimName: {{ .Values.core.persistence.certs.existingClaim | default (printf "%s-certs" (include "grommunio.core.fullname" .)) }}
-        {{- end }}
-        {{- if .Values.config }}
-        - name: env-vars
-          configMap:
-            name: {{ include "grommunio.fullname" . }}-env-vars
         {{- end }}
 {{- end }}
