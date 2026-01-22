@@ -300,6 +300,7 @@ core:
     # -- IMAP port (993)
     imap:
       port: 993
+      hostPort: 993
     # -- HTTP port (80)
     http:
       port: 80
@@ -463,14 +464,15 @@ office:
 # Ingress configuration
 
 ingress:
-  enabled: false
+  enabled: true
   className: "nginx"
-  annotations: {}
-    # cert-manager.io/cluster-issuer: letsencrypt
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  annotations:
+    # This is the key: it tells NGINX the backend is using HTTPS
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # Optional: If the backend cert is self-signed/internal, skip verification
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
 
-  # -- Web interface
+  # -- Web interface (port 443)
   web:
     enabled: true
     host: grommunio.example.com
@@ -480,7 +482,7 @@ ingress:
       enabled: true
       secretName: grommunio-web-tls
 
-  # -- Admin interface
+  # -- Admin interface (port 8443)
   admin:
     enabled: true
     host: admin.grommunio.example.com

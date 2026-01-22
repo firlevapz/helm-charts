@@ -122,6 +122,9 @@ spec:
             - name: imap
               containerPort: 993
               protocol: TCP
+              {{- if .Values.core.service.imap.hostPort }}
+              hostPort: {{ .Values.core.service.imap.hostPort }}
+              {{- end }}
             - name: http
               containerPort: 80
               protocol: TCP
