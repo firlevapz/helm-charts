@@ -274,149 +274,149 @@ imagePullSecrets:
 {{- define "grommunio.envVars" -}}
 # Database connection info for gromox-db
 - name: MYSQL_HOST
-    value: {{ include "grommunio.gromoxDb.fullname" . }}
+  value: {{ include "grommunio.gromoxDb.fullname" . }}
 - name: MYSQL_DB
-    value: {{ .Values.databases.gromox.database | quote }}
+  value: {{ .Values.databases.gromox.database | quote }}
 - name: MYSQL_USER
-    value: {{ .Values.databases.gromox.user | quote }}
+  value: {{ .Values.databases.gromox.user | quote }}
 - name: MYSQL_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.gromoxDb.secretName" . }}
-        key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-password" }}
+      name: {{ include "grommunio.gromoxDb.secretName" . }}
+      key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-password" }}
 - name: MYSQL_ROOT_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.gromoxDb.secretName" . }}
-        key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-root-password" }}
+      name: {{ include "grommunio.gromoxDb.secretName" . }}
+      key: {{ .Values.databases.gromox.existingSecretPasswordKey | default "mariadb-root-password" }}
 
 {{- if .Values.databases.chat.enabled }}
 # Chat database connection
 - name: CHAT_MYSQL_HOST
-    value: {{ include "grommunio.chatDb.fullname" . }}
+  value: {{ include "grommunio.chatDb.fullname" . }}
 - name: CHAT_MYSQL_DB
-    value: {{ .Values.databases.chat.database | quote }}
+  value: {{ .Values.databases.chat.database | quote }}
 - name: CHAT_MYSQL_USER
-    value: {{ .Values.databases.chat.user | quote }}
+  value: {{ .Values.databases.chat.user | quote }}
 - name: CHAT_MYSQL_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.chatDb.secretName" . }}
-        key: {{ .Values.databases.chat.existingSecretPasswordKey | default "mariadb-password" }}
+      name: {{ include "grommunio.chatDb.secretName" . }}
+      key: {{ .Values.databases.chat.existingSecretPasswordKey | default "mariadb-password" }}
 - name: CHAT_MYSQL_ROOT_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.chatDb.secretName" . }}
-        key: {{ .Values.databases.chat.existingSecretPasswordKey | default "mariadb-root-password" }}
+      name: {{ include "grommunio.chatDb.secretName" . }}
+      key: {{ .Values.databases.chat.existingSecretPasswordKey | default "mariadb-root-password" }}
 {{- end }}
 
 {{- if .Values.databases.files.enabled }}
 # Files database connection
 - name: FILES_MYSQL_HOST
-    value: {{ include "grommunio.filesDb.fullname" . }}
+  value: {{ include "grommunio.filesDb.fullname" . }}
 - name: FILES_MYSQL_DB
-    value: {{ .Values.databases.files.database | quote }}
+  value: {{ .Values.databases.files.database | quote }}
 - name: FILES_MYSQL_USER
-    value: {{ .Values.databases.files.user | quote }}
+  value: {{ .Values.databases.files.user | quote }}
 - name: FILES_MYSQL_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.filesDb.secretName" . }}
-        key: {{ .Values.databases.files.existingSecretPasswordKey | default "mariadb-password" }}
+      name: {{ include "grommunio.filesDb.secretName" . }}
+      key: {{ .Values.databases.files.existingSecretPasswordKey | default "mariadb-password" }}
 - name: FILES_MYSQL_ROOT_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.filesDb.secretName" . }}
-        key: {{ .Values.databases.files.existingSecretPasswordKey | default "mariadb-root-password" }}
+      name: {{ include "grommunio.filesDb.secretName" . }}
+      key: {{ .Values.databases.files.existingSecretPasswordKey | default "mariadb-root-password" }}
 {{- end }}
 
 {{- if .Values.databases.office.enabled }}
 # Office database connection
 - name: OFFICE_MYSQL_HOST
-    value: {{ include "grommunio.officeDb.fullname" . }}
+  value: {{ include "grommunio.officeDb.fullname" . }}
 - name: OFFICE_MYSQL_DB
-    value: {{ .Values.databases.office.database | quote }}
+  value: {{ .Values.databases.office.database | quote }}
 - name: OFFICE_MYSQL_USER
-    value: {{ .Values.databases.office.user | quote }}
+  value: {{ .Values.databases.office.user | quote }}
 - name: OFFICE_MYSQL_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.officeDb.secretName" . }}
-        key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-password" }}
+      name: {{ include "grommunio.officeDb.secretName" . }}
+      key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-password" }}
 - name: OFFICE_MYSQL_ROOT_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.officeDb.secretName" . }}
-        key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-root-password" }}
+      name: {{ include "grommunio.officeDb.secretName" . }}
+      key: {{ .Values.databases.office.existingSecretPasswordKey | default "mariadb-root-password" }}
 {{- end }}
 
 {{- if .Values.databases.archive.enabled }}
 # Archive database connection
 - name: ARCHIVE_MYSQL_HOST
-    value: {{ include "grommunio.archiveDb.fullname" . }}
+  value: {{ include "grommunio.archiveDb.fullname" . }}
 - name: ARCHIVE_MYSQL_DB
-    value: {{ .Values.databases.archive.database | quote }}
+  value: {{ .Values.databases.archive.database | quote }}
 - name: ARCHIVE_MYSQL_USER
-    value: {{ .Values.databases.archive.user | quote }}
+  value: {{ .Values.databases.archive.user | quote }}
 - name: ARCHIVE_MYSQL_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.archiveDb.secretName" . }}
-        key: {{ .Values.databases.archive.existingSecretPasswordKey | default "mariadb-password" }}
+      name: {{ include "grommunio.archiveDb.secretName" . }}
+      key: {{ .Values.databases.archive.existingSecretPasswordKey | default "mariadb-password" }}
 - name: ARCHIVE_MYSQL_ROOT_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.archiveDb.secretName" . }}
-        key: {{ .Values.databases.archive.existingSecretPasswordKey | default "mariadb-root-password" }}
+      name: {{ include "grommunio.archiveDb.secretName" . }}
+      key: {{ .Values.databases.archive.existingSecretPasswordKey | default "mariadb-root-password" }}
 {{- end }}
 
 # Archive service configuration
 {{- if and .Values.archive.enabled .Values.databases.archive.enabled }}
 - name: ENABLE_ARCHIVE
-    value: "true"
+  value: "true"
 - name: ARCHIVE_HOST
-    value: {{ include "grommunio.archive.fullname" . }}
+  value: {{ include "grommunio.archive.fullname" . }}
 {{- else }}
 - name: ENABLE_ARCHIVE
-    value: "false"
+  value: "false"
 {{- end }}
 
 # Office service configuration
 {{- if and .Values.office.enabled .Values.databases.office.enabled }}
 - name: ENABLE_OFFICE
-    value: "true"
+  value: "true"
 - name: OFFICE_HOST
-    value: {{ include "grommunio.office.fullname" . }}
+  value: {{ include "grommunio.office.fullname" . }}
 {{- else }}
 - name: ENABLE_OFFICE
-    value: "false"
+  value: "false"
 {{- end }}
 
 # Files service configuration
 {{- if and .Values.office.enabled .Values.databases.files.enabled }}
 - name: ENABLE_FILES
-    value: "true"
+  value: "true"
 - name: FILES_HOST
-    value: {{ include "grommunio.office.fullname" . }}
+  value: {{ include "grommunio.office.fullname" . }}
 {{- else }}
 - name: ENABLE_FILES
-    value: "false"
+  value: "false"
 {{- end }}
 
 - name: CHAT_ADMIN_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.fullname" . }}-admin
-        key: chat-admin-pass
+      name: {{ include "grommunio.fullname" . }}-admin
+      key: chat-admin-pass
 - name: FILES_ADMIN_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.fullname" . }}-admin
-        key: files-admin-pass
+      name: {{ include "grommunio.fullname" . }}-admin
+      key: files-admin-pass
 - name: ADMIN_PASS
   valueFrom:
     secretKeyRef:
-        name: {{ include "grommunio.fullname" . }}-admin
-        key: admin-pass
+      name: {{ include "grommunio.fullname" . }}-admin
+      key: admin-pass
 
 {{- end }}
