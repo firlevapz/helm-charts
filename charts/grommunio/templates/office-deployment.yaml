@@ -49,11 +49,7 @@ spec:
           command:
             - sh
             - -c
-            - |
-              set -e
-              echo "Exporting environment variables to /home/vars/var.env"
-              env > /home/vars/var.env
-              echo "Environment variables exported successfully"
+            - env > /home/vars/var.env
           env:
             {{ include "grommunio.envVars" . | nindent 12 }}
             {{- range $key, $value := .Values.office.env }}
