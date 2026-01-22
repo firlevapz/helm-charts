@@ -158,19 +158,19 @@ core:
   persistence:
     data:
       enabled: true
-      size: 50Gi
+      size: 1Gi
     variables:
       enabled: true
-      size: 1Gi
+      size: 10Mi
     certs:
       enabled: true
-      size: 100Mi
+      size: 10Mi
 
 databases:
   gromox:
     persistence:
       enabled: true
-      size: 10Gi
+      size: 1Gi
 ```
 
 ## Parameters

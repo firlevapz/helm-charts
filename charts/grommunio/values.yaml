@@ -67,7 +67,7 @@ databases:
     # -- Persistence settings
     persistence:
       enabled: true
-      size: 10Gi
+      size: 1Gi
       storageClass: ""
       accessModes:
         - ReadWriteOnce
@@ -103,7 +103,7 @@ databases:
     existingSecretPasswordKey: "mariadb-password"
     persistence:
       enabled: true
-      size: 5Gi
+      size: 1Gi
       storageClass: ""
       accessModes:
         - ReadWriteOnce
@@ -137,7 +137,7 @@ databases:
     existingSecretPasswordKey: "mariadb-password"
     persistence:
       enabled: true
-      size: 5Gi
+      size: 1Gi
       storageClass: ""
       accessModes:
         - ReadWriteOnce
@@ -170,7 +170,7 @@ databases:
     existingSecretPasswordKey: "mariadb-password"
     persistence:
       enabled: true
-      size: 5Gi
+      size: 1Gi
       storageClass: ""
       accessModes:
         - ReadWriteOnce
@@ -204,7 +204,7 @@ databases:
     existingSecretPasswordKey: "mariadb-password"
     persistence:
       enabled: true
-      size: 10Gi
+      size: 1Gi
       storageClass: ""
       accessModes:
         - ReadWriteOnce
@@ -309,7 +309,7 @@ core:
     # -- Data volume
     data:
       enabled: true
-      size: 50Gi
+      size: 1Gi
       storageClass: ""
       accessModes:
         - ReadWriteOnce
@@ -319,7 +319,7 @@ core:
     # -- Variables volume
     variables:
       enabled: true
-      size: 1Gi
+      size: 10Mi
       storageClass: ""
       accessModes:
         - ReadWriteOnce
@@ -328,7 +328,7 @@ core:
     # -- Certificates volume
     certs:
       enabled: true
-      size: 100Mi
+      size: 10Mi
       storageClass: ""
       accessModes:
         - ReadWriteOnce
