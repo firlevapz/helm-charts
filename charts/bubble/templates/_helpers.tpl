@@ -197,11 +197,11 @@ Redis port
 Redis URL
 */}}
 {{- define "bubble.redis.url" -}}
-{{- if .Values.redis.enabled }}
+{{- if .Values.redis.enabled -}}
 redis://{{ include "bubble.redis.fullname" . }}:{{ .Values.redis.service.port }}/0
-{{- else if .Values.externalRedis.password }}
+{{- else if .Values.externalRedis.password -}}
 redis://:$(REDIS_PASSWORD)@{{ .Values.externalRedis.host }}:{{ .Values.externalRedis.port }}/{{ .Values.externalRedis.db }}
-{{- else }}
+{{- else -}}
 redis://{{ .Values.externalRedis.host }}:{{ .Values.externalRedis.port }}/{{ .Values.externalRedis.db }}
 {{- end }}
 {{- end }}

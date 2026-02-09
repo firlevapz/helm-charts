@@ -82,6 +82,10 @@ spec:
             - secretRef:
                 name: {{ include "bubble.fullname" . }}-backend
           env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
