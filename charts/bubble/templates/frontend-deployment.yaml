@@ -50,7 +50,7 @@ spec:
               path: /healthz
               port: http
             initialDelaySeconds: 5
-            periodSeconds: 5
+            periodSeconds: 15
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
           volumeMounts:
@@ -58,7 +58,19 @@ spec:
               mountPath: /usr/share/nginx/html/media
             - name: staticfiles
               mountPath: /usr/share/nginx/html/static
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
       volumes:
+        - name: nginx-conf
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
         - name: media
           {{- if .Values.backend.persistence.media.enabled }}
           persistentVolumeClaim:
