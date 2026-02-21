@@ -226,7 +226,7 @@ databases:
 # -- Core grommunio application
 core:
   enabled: true
-  # -- Set the runtime class for the core Deployment (e.g., sysbox-runc for enhanced isolation)
+  # -- Set the runtime class for the core StatefulSet (e.g., sysbox-runc for enhanced isolation)
   runtimeClassName: sysbox-runc
   image:
     # -- Container image repository (set to your custom built image)
@@ -319,6 +319,15 @@ core:
 
     # -- Variables volume
     variables:
+      enabled: true
+      size: 10Mi
+      storageClass: ""
+      accessModes:
+        - ReadWriteOnce
+      existingClaim: ""
+
+    # -- Gromox configuration volume
+    config:
       enabled: true
       size: 10Mi
       storageClass: ""

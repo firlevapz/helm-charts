@@ -1,11 +1,12 @@
 {{- if .Values.core.enabled }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "grommunio.core.fullname" . }}
   labels:
     {{- include "grommunio.core.labels" . | nindent 4 }}
 spec:
+  serviceName: {{ include "grommunio.core.fullname" . }}
   replicas: {{ .Values.core.replicaCount }}
   selector:
     matchLabels:
@@ -177,11 +178,15 @@ spec:
           volumeMounts:
             {{- if .Values.core.persistence.data.enabled }}
             - name: data
-              mountPath: /data
+              mountPath: /var/lib/gromox
             {{- end }}
             {{- if .Values.core.persistence.variables.enabled }}
             - name: variables
               mountPath: /home/vars
+            {{- end }}
+            {{- if .Values.core.persistence.config.enabled }}
+            - name: config
+              mountPath: /etc/gromox
             {{- end }}
             {{- if .Values.core.persistence.certs.enabled }}
             - name: certs
@@ -197,6 +202,11 @@ spec:
         - name: variables
           persistentVolumeClaim:
             claimName: {{ .Values.core.persistence.variables.existingClaim | default (printf "%s-variables" (include "grommunio.core.fullname" .)) }}
+        {{- end }}
+        {{- if .Values.core.persistence.config.enabled }}
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ .Values.core.persistence.config.existingClaim | default (printf "%s-config" (include "grommunio.core.fullname" .)) }}
         {{- end }}
         {{- if .Values.core.persistence.certs.enabled }}
         - name: certs

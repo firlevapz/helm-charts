@@ -38,6 +38,23 @@ spec:
       storage: {{ .Values.core.persistence.variables.size | quote }}
 {{- end }}
 
+{{- if and .Values.core.persistence.config.enabled (not .Values.core.persistence.config.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "grommunio.core.fullname" . }}-config
+  labels:
+    {{- include "grommunio.core.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.core.persistence.config.accessModes | nindent 4 }}
+  {{- include "grommunio.storageClass" (dict "global" .Values.global.storageClass "local" .Values.core.persistence.config.storageClass) | nindent 2 }}
+  resources:
+    requests:
+      storage: {{ .Values.core.persistence.config.size | quote }}
+{{- end }}
+
 {{- if and .Values.core.persistence.certs.enabled (not .Values.core.persistence.certs.existingClaim) }}
 ---
 apiVersion: v1
