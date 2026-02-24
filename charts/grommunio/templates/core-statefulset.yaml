@@ -76,6 +76,25 @@ spec:
             - name: variables
               mountPath: /home/vars
             {{- end }}
+        {{- if .Values.core.persistence.data.enabled }}
+        # Seed data volume from image on first start
+        - name: seed-gromox-data
+          image: "{{ .Values.core.image.repository }}:{{ .Values.core.image.tag }}"
+          imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              if [ -z "$(ls -A /data 2>/dev/null)" ]; then
+                echo "Seeding /data from image /var/lib/gromox"
+                cp -a /var/lib/gromox/. /data/
+              else
+                echo "Data volume not empty; skipping seed"
+              fi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+        {{- end }}
         # Wait for databases to be ready
         - name: wait-for-gromox-db
           image: busybox:1.36
