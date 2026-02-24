@@ -1,0 +1,19 @@
+{{- if .Values.core.nginxTcpServices.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.core.nginxTcpServices.configMapName }}
+  namespace: {{ .Values.core.nginxTcpServices.namespace }}
+  labels:
+    {{- include "grommunio.core.labels" . | nindent 4 }}
+data:
+  {{- if .Values.core.nginxTcpServices.smtp.enabled }}
+  "{{ .Values.core.nginxTcpServices.smtp.externalPort }}": "{{ .Release.Namespace }}/{{ include "grommunio.core.fullname" . }}:{{ .Values.core.service.smtp.port }}"
+  {{- end }}
+  {{- if .Values.core.nginxTcpServices.imap.enabled }}
+  "{{ .Values.core.nginxTcpServices.imap.externalPort }}": "{{ .Release.Namespace }}/{{ include "grommunio.core.fullname" . }}:{{ .Values.core.service.imap.port }}"
+  {{- end }}
+  {{- if .Values.core.nginxTcpServices.pop3s.enabled }}
+  "{{ .Values.core.nginxTcpServices.pop3s.externalPort }}": "{{ .Release.Namespace }}/{{ include "grommunio.core.fullname" . }}:{{ .Values.core.service.pop3s.port }}"
+  {{- end }}
+{{- end }}

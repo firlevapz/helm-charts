@@ -317,6 +317,28 @@ core:
     http:
       port: 80
 
+  # -- Nginx Ingress TCP Services Configuration
+  # This creates a ConfigMap for nginx-ingress to expose TCP services (SMTP, IMAP, POP3S)
+  nginxTcpServices:
+    # -- Enable nginx TCP services ConfigMap creation
+    enabled: false
+    # -- ConfigMap name (must match nginx-ingress controller configuration)
+    configMapName: tcp-services
+    # -- Namespace where nginx-ingress is deployed
+    namespace: ingress-nginx
+    # -- SMTP TCP service
+    smtp:
+      enabled: true
+      externalPort: 25
+    # -- IMAP TCP service
+    imap:
+      enabled: true
+      externalPort: 993
+    # -- POP3S TCP service
+    pop3s:
+      enabled: true
+      externalPort: 995
+
   # -- Persistence for shared data
   persistence:
     # -- Data volume
