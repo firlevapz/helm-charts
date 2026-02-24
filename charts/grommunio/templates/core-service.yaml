@@ -11,6 +11,10 @@ metadata:
   {{- end }}
 spec:
   type: {{ .Values.core.service.type }}
+  {{- if .Values.core.service.externalIPs }}
+  externalIPs:
+    {{- toYaml .Values.core.service.externalIPs | nindent 4 }}
+  {{- end }}
   ports:
     {{- if .Values.core.service.ssh.enabled }}
     - name: ssh
@@ -33,6 +37,18 @@ spec:
       port: {{ .Values.core.service.imap.port }}
       targetPort: imap
       protocol: TCP
+    {{- if .Values.core.service.smtp.enabled }}
+    - name: smtp
+      port: {{ .Values.core.service.smtp.port }}
+      targetPort: smtp
+      protocol: TCP
+    {{- end }}
+    {{- if .Values.core.service.pop3s.enabled }}
+    - name: pop3s
+      port: {{ .Values.core.service.pop3s.port }}
+      targetPort: pop3s
+      protocol: TCP
+    {{- end }}
     - name: http
       port: {{ .Values.core.service.http.port }}
       targetPort: http

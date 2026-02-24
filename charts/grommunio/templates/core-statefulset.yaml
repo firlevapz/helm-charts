@@ -145,6 +145,18 @@ spec:
               {{- if .Values.core.service.imap.hostPort }}
               hostPort: {{ .Values.core.service.imap.hostPort }}
               {{- end }}
+            - name: smtp
+              containerPort: {{ .Values.core.service.smtp.port }}
+              protocol: TCP
+              {{- if .Values.core.service.smtp.hostPort }}
+              hostPort: {{ .Values.core.service.smtp.hostPort }}
+              {{- end }}
+            - name: pop3s
+              containerPort: {{ .Values.core.service.pop3s.port }}
+              protocol: TCP
+              {{- if .Values.core.service.pop3s.hostPort }}
+              hostPort: {{ .Values.core.service.pop3s.hostPort }}
+              {{- end }}
             - name: http
               containerPort: 80
               protocol: TCP

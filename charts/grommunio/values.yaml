@@ -286,6 +286,8 @@ core:
   service:
     type: ClusterIP
     annotations: {}
+    # -- External IPs for the Service
+    externalIPs: []
     # -- SSH port
     ssh:
       enabled: false
@@ -301,6 +303,16 @@ core:
     imap:
       port: 993
       hostPort: 993
+    # -- SMTP port (25)
+    smtp:
+      enabled: true
+      port: 25
+      hostPort: ""
+    # -- POP3S port (995)
+    pop3s:
+      enabled: true
+      port: 995
+      hostPort: ""
     # -- HTTP port (80)
     http:
       port: 80
