@@ -7,6 +7,7 @@ A Helm chart for deploying the Bubble Community Network application to Kubernete
 - Kubernetes 1.23+
 - Helm 3.8+
 - PV provisioner support in the underlying infrastructure (for persistence)
+- Gateway API CRDs (gateway.networking.k8s.io/v1) installed in the cluster
 
 ## Installing the Chart
 
@@ -32,14 +33,20 @@ helm install bubble ./helm \
 
 ### Frontend
 
-| Parameter                   | Description                 | Default                                                        |
+| Parameter | Description | Default |
 | --------------------------- | --------------------------- | -------------------------------------------------------------- |
-| `frontend.enabled`          | Enable frontend deployment  | `true`                                                         |
-| `frontend.replicaCount`     | Number of frontend replicas | `1`                                                            |
-| `frontend.image.repository` | Frontend image repository   | `ghcr.io/treibhausdonaufeld/bubble-frontend`                   |
-| `frontend.image.tag`        | Frontend image tag          | `latest`                                                       |
-| `frontend.ingress.enabled`  | Enable ingress for frontend | `true`                                                         |
-| `frontend.ingress.hosts`    | Ingress hosts configuration | `[{host: bubble.local, paths: [{path: /, pathType: Prefix}]}]` |
+| `frontend.enabled` | Enable frontend deployment | `true` |
+| `frontend.replicaCount` | Number of frontend replicas | `1` |
+| `frontend.image.repository` | Frontend image repository | `ghcr.io/treibhausdonaufeld/bubble-frontend` |
+| `frontend.image.tag` | Frontend image tag | `latest` |
+| `frontend.gateway.enabled` | Create a Gateway resource for the frontend traffic | `true` |
+| `frontend.gateway.gatewayClassName` | GatewayClass name attached to the generated Gateway | `nginx` |
+| `frontend.gateway.listeners` | Listener definitions applied to the Gateway | `[{name: web, protocol: HTTP, port: 80, hostname: bubble.local}]` |
+| `frontend.httpRoute.hostnames` | Hostnames matched by the HTTPRoute | `["bubble.local"]` |
+| `frontend.httpRoute.backendPrefixes` | Path prefixes forwarded to the backend service | `["/api","/accounts","/admin"]` |
+| `frontend.httpRoute.frontendPrefix` | Catch-all prefix served by the frontend service | `/` |
+
+The bundled HTTPRoute mirrors the existing NGINX configuration by routing `/api`, `/accounts`, and `/admin` to the backend Service while serving every other path from the frontend Service (including `/`, static assets, SPA fallbacks, and `/env-config.js`). Adjust `frontend.httpRoute.backendPrefixes` or `frontend.httpRoute.additionalRules` if you expose new backend paths. If you disable the chart-managed Gateway (`frontend.gateway.enabled=false`), provide your own `frontend.httpRoute.parentRefs` so the route can attach to an existing Gateway.
 
 ### Backend
 
@@ -120,32 +127,35 @@ Use these settings when `redis.enabled=false`:
 ```yaml
 # values-production.yaml
 frontend:
-  ingress:
-    enabled: true
-    className: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-    hosts:
-      - host: bubble.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: bubble-tls
-        hosts:
-          - bubble.example.com
+  gateway:
+    gatewayClassName: nginx
+    listeners:
+      - name: https
+        protocol: HTTPS
+        port: 443
+        hostname: bubble.example.com
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - kind: Secret
+              group: ""
+              name: bubble-tls
+  httpRoute:
+    hostnames:
+      - bubble.example.com
 
 backend:
   django:
-    allowedHosts: 'bubble.example.com'
+    allowedHosts: bubble.example.com
   secrets:
-    secretKey: 'your-very-secret-key-here'
+    secretKey: your-very-secret-key-here
 
 postgresql:
   auth:
-    password: 'secure-db-password'
-    postgresPassword: 'secure-postgres-password'
+    password: secure-db-password
+    postgresPassword: secure-postgres-password
 ```
+
 
 ### Using External PostgreSQL and Redis
 

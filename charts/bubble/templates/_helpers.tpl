@@ -67,6 +67,14 @@ Frontend fullname
 {{- end }}
 
 {{/*
+Frontend Gateway fullname
+*/}}
+{{- define "bubble.frontend.gateway.fullname" -}}
+{{- printf "%s-frontend-gateway" (include "bubble.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+
+{{/*
 Backend fullname
 */}}
 {{- define "bubble.backend.fullname" -}}

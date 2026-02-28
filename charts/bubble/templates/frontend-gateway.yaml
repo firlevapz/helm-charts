@@ -1,0 +1,47 @@
+{{- if and .Values.frontend.enabled .Values.frontend.gateway.enabled }}
+{{- $listeners := .Values.frontend.gateway.listeners | default (list) }}
+{{- if lt (len $listeners) 1 }}
+{{- fail "frontend.gateway.listeners must contain at least one listener when frontend.gateway.enabled=true" }}
+{{- end }}
+{{- $gatewayClassName := default "" .Values.frontend.gateway.gatewayClassName }}
+{{- if not $gatewayClassName }}
+{{- fail "frontend.gateway.gatewayClassName must be set" }}
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ include "bubble.frontend.gateway.fullname" . }}
+  labels:
+    {{- include "bubble.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+    {{- with .Values.frontend.gateway.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.frontend.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ $gatewayClassName }}
+  {{- with .Values.frontend.gateway.addresses }}
+  addresses:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  listeners:
+    {{- range $index, $listener := $listeners }}
+    - name: {{ required (printf "frontend.gateway.listeners[%d].name is required" $index) $listener.name }}
+      protocol: {{ default "HTTP" $listener.protocol }}
+      port: {{ required (printf "frontend.gateway.listeners[%d].port is required" $index) $listener.port }}
+      {{- with $listener.hostname }}
+      hostname: {{ . | quote }}
+      {{- end }}
+      {{- with $listener.tls }}
+      tls:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $listener.allowedRoutes }}
+      allowedRoutes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+{{- end }}
