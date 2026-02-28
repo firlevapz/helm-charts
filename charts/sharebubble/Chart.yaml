@@ -1,12 +1,13 @@
 apiVersion: v2
-name: bubble
-description: A Helm chart for Bubble - Community Network application
+name: sharebubble
+description: A Helm chart for Sharebubble - Community Network application
 type: application
 version: 0.1.0
-appVersion: '0.1.0'
+appVersion: "0.1.0"
 
 keywords:
   - bubble
+  - sharebubble
   - community
   - django
   - celery

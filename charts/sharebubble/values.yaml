@@ -235,7 +235,7 @@ redis:
   enabled: true
 
   image:
-    repository: ghcr.io/dragonflydb/dragonfly
+    repository: redis
     tag: "latest"
     pullPolicy: IfNotPresent
 
