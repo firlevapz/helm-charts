@@ -26,7 +26,7 @@ frontend:
 
   gateway:
     enabled: true
-    gatewayClassName: nginx
+    gatewayClassName: ""
     annotations: {}
     labels: {}
     addresses: []

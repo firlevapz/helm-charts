@@ -3,10 +3,7 @@
 {{- if lt (len $listeners) 1 }}
 {{- fail "frontend.gateway.listeners must contain at least one listener when frontend.gateway.enabled=true" }}
 {{- end }}
-{{- $gatewayClassName := default "" .Values.frontend.gateway.gatewayClassName }}
-{{- if not $gatewayClassName }}
-{{- fail "frontend.gateway.gatewayClassName must be set" }}
-{{- end }}
+{{- $gatewayClassName := .Values.frontend.gateway.gatewayClassName | default "" }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -22,7 +19,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- if $gatewayClassName }}
   gatewayClassName: {{ $gatewayClassName }}
+  {{- end }}
   {{- with .Values.frontend.gateway.addresses }}
   addresses:
     {{- toYaml . | nindent 4 }}
