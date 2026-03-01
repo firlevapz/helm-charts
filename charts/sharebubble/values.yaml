@@ -1,4 +1,4 @@
-# Default values for bubble.
+# Default values for sharebubble.
 # This is a YAML-formatted file.
 
 # Global settings
@@ -24,9 +24,47 @@ frontend:
     type: ClusterIP
     port: 8888
 
-  gateway:
+  # ---------------------------------------------------------------------------
+  # Ingress (networking.k8s.io/v1)
+  # Simple, widely supported. Enable this for clusters that use a traditional
+  # ingress controller (nginx, traefik in ingress mode, etc.).
+  # Routing mirrors the nginx config: /api, /accounts, /admin → backend;
+  # everything else → frontend.
+  # Only one of ingress or gateway/httpRoute should be enabled at a time.
+  # ---------------------------------------------------------------------------
+  ingress:
     enabled: true
-    gatewayClassName: "nginx"
+    # Which prefixes to route to backend service
+    backendPrefixes:
+      - /api
+      - /accounts
+      - /admin
+    className: ""
+    annotations: {}
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+      # nginx.ingress.kubernetes.io/proxy-body-size: 500m
+    hosts:
+      - host: sharebubble.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+    # - secretName: sharebubble-tls
+    #   hosts:
+    #     - sharebubble.local
+
+  # ---------------------------------------------------------------------------
+  # Gateway API (gateway.networking.k8s.io/v1)
+  # More expressive, supports advanced traffic management. Enable this for
+  # clusters with a Gateway API-capable controller (traefik v3+, nginx gateway,
+  # istio, etc.).
+  # Requires Gateway API CRDs to be installed in the cluster.
+  # Only one of ingress or gateway/httpRoute should be enabled at a time.
+  # ---------------------------------------------------------------------------
+  gateway:
+    enabled: false
+    # GatewayClass name. Leave empty to use the cluster default GatewayClass.
+    gatewayClassName: ""
     annotations: {}
     labels: {}
     addresses: []
@@ -34,21 +72,25 @@ frontend:
       - name: web
         protocol: HTTP
         port: 80
-        hostname: bubble.local
+        hostname: sharebubble.local
         allowedRoutes:
           namespaces:
             from: Same
 
   httpRoute:
-    enabled: true
+    enabled: false
     annotations: {}
+    # Explicit parentRefs. When empty and gateway.enabled=true the chart
+    # derives the ref automatically from the first gateway listener.
     parentRefs: []
     hostnames:
-      - bubble.local
+      - sharebubble.local
+    # Path prefixes routed to the backend service.
     backendPrefixes:
       - /api
       - /accounts
       - /admin
+    # Catch-all prefix served by the frontend service.
     frontendPrefix: /
     additionalRules: []
 
@@ -69,7 +111,6 @@ frontend:
 
   # Environment variables
   env:
-    BACKEND_HOST: "backend:8000"
     VITE_SENTRY_DSN: ""
     VITE_SENTRY_ENVIRONMENT: ""
 
@@ -116,7 +157,7 @@ backend:
     httpXForwardedProto: "https"
     accountEmailVerification: "true"
 
-  # Secrets - should be provided via secrets or external secret management
+  # Secrets - should be provided via a values override or external secret management
   secrets:
     # Django secret key - REQUIRED
     secretKey: ""
@@ -231,7 +272,7 @@ externalPostgresql:
 # Redis Configuration
 # ============================================================================
 redis:
-  # Use internal Redis instance (DragonflyDB)
+  # Use internal Redis instance
   enabled: true
 
   image:
@@ -242,7 +283,6 @@ redis:
   service:
     port: 6379
 
-  # DragonflyDB specific settings
   env:
     DFLY_default_lua_flags: "allow-undeclared-keys disable-atomicity"
 
