@@ -147,15 +147,16 @@ backend:
 
   # Django settings
   django:
-    settingsModule: "config.settings.production"
-    allowedHosts: "localhost"
-    adminUrl: "admin/"
-    debug: "false"
-    logLevel: "INFO"
-    secureSSLRedirect: "true"
-    sessionCookieSecure: "true"
-    httpXForwardedProto: "https"
-    accountEmailVerification: "true"
+    DJANGO_SETTINGS_MODULE: "config.settings.production"
+    DJANGO_ALLOWED_HOSTS: "localhost"
+    DJANGO_ADMIN_URL: "admin/"
+    DJANGO_DEBUG: "false"
+    DJANGO_LOG_LEVEL: "INFO"
+    DJANGO_SECURE_SSL_REDIRECT: "true"
+    DJANGO_SESSION_COOKIE_SECURE: "true"
+    HTTP_X_FORWARDED_PROTO: "https"
+    ACCOUNT_EMAIL_VERIFICATION: "true"
+    ALLOWED_CIDR_NETS: "172.16.0.0/12,192.168.0.0/16,127.0.0.1/32,10.0.0.0/8"
 
   # Secrets - should be provided via a values override or external secret management
   secrets:
@@ -166,9 +167,6 @@ backend:
     # Mailgun configuration
     mailgunApiKey: ""
     mailgunDomain: ""
-
-  # Allowed CIDR networks
-  allowedCidrNets: "172.16.0.0/12,192.168.0.0/16,127.0.0.1/32,10.0.0.0/8"
 
   # Persistent volumes
   persistence:
