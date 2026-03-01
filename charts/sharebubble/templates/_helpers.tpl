@@ -265,3 +265,18 @@ imagePullSecrets:
   {{- toYaml . | nindent 2 }}
 {{- end }}
 {{- end }}
+
+{{/*
+Optional envFrom entry for a shared existing secret.
+Renders a secretRef block when .Values.secretsFrom.existingSecret is non-empty.
+Usage: {{- include "bubble.secretsFrom" . | nindent <N> }}
+*/}}
+{{- define "bubble.secretsFrom" -}}
+{{- if .Values.secretsFrom.existingSecret }}
+- secretRef:
+    name: {{ .Values.secretsFrom.existingSecret }}
+  {{- if .Values.secretsFrom.envPrefix }}
+  prefix: {{ .Values.secretsFrom.envPrefix }}
+  {{- end }}
+{{- end }}
+{{- end }}

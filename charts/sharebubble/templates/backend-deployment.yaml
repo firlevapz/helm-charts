@@ -37,6 +37,7 @@ spec:
                 name: {{ include "bubble.fullname" . }}-backend
             - secretRef:
                 name: {{ include "bubble.fullname" . }}-backend
+            {{- include "bubble.secretsFrom" . | nindent 12 }}
           env:
             - name: DATABASE_PASSWORD
               valueFrom:
@@ -57,6 +58,7 @@ spec:
                 name: {{ include "bubble.fullname" . }}-backend
             - secretRef:
                 name: {{ include "bubble.fullname" . }}-backend
+            {{- include "bubble.secretsFrom" . | nindent 12 }}
           env:
             - name: DATABASE_PASSWORD
               valueFrom:
@@ -81,6 +83,7 @@ spec:
                 name: {{ include "bubble.fullname" . }}-backend
             - secretRef:
                 name: {{ include "bubble.fullname" . }}-backend
+            {{- include "bubble.secretsFrom" . | nindent 12 }}
           env:
             - name: POD_IP
               valueFrom:
