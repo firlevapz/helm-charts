@@ -267,6 +267,72 @@ externalPostgresql:
   existingSecretPasswordKey: "password"
 
 # ============================================================================
+# PgBouncer Configuration
+# ============================================================================
+pgbouncer:
+  # Enable PgBouncer as a connection pooler in front of PostgreSQL.
+  # When enabled, the backend, workers and beat connect to PgBouncer instead of
+  # PostgreSQL directly. Works with both internal (postgresql.enabled=true)
+  # and external PostgreSQL.
+  enabled: true
+
+  image:
+    repository: edoburu/pgbouncer
+    # tag: "v1.25.1-p0"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  service:
+    port: 5432
+
+  # Connection pooling mode: session | transaction | statement
+  poolMode: transaction
+
+  # Auth type: md5 | scram-sha-256 | plain
+  # Must match PostgreSQL's authentication method
+  authType: scram-sha-256
+
+  # Maximum number of client connections allowed
+  maxClientConn: 1000
+
+  # Default pool size per database/user pair
+  defaultPoolSize: 20
+
+  # Minimum number of server connections kept open
+  minPoolSize: 5
+
+  # Extra connections added to the pool on high load
+  reservePoolSize: 5
+
+  # How long a client can wait for a connection before getting an error (seconds)
+  reservePoolTimeout: 3
+
+  # Seconds before an idle server connection is closed
+  serverIdleTimeout: 600
+
+  # Log client connect/disconnect events (0 = off, 1 = on)
+  logConnections: 1
+  logDisconnections: 1
+
+  # Any additional environment variables to pass to the container.
+  # See https://github.com/edoburu/docker-pgbouncer for the full list.
+  # extraEnv:
+  #   - name: SERVER_RESET_QUERY
+  #     value: "DISCARD ALL"
+  extraEnv: []
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# ============================================================================
 # Redis Configuration
 # ============================================================================
 redis:

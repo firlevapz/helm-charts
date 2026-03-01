@@ -103,6 +103,13 @@ PostgreSQL fullname
 {{- end }}
 
 {{/*
+PgBouncer fullname
+*/}}
+{{- define "bubble.pgbouncer.fullname" -}}
+{{- printf "%s-pgbouncer" (include "bubble.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
 Redis fullname
 */}}
 {{- define "bubble.redis.fullname" -}}
@@ -111,9 +118,12 @@ Redis fullname
 
 {{/*
 PostgreSQL host
+Returns PgBouncer host when pgbouncer is enabled, otherwise direct PostgreSQL/external host.
 */}}
 {{- define "bubble.postgresql.host" -}}
-{{- if .Values.postgresql.enabled }}
+{{- if .Values.pgbouncer.enabled }}
+{{- include "bubble.pgbouncer.fullname" . }}
+{{- else if .Values.postgresql.enabled }}
 {{- include "bubble.postgresql.fullname" . }}
 {{- else }}
 {{- .Values.externalPostgresql.host }}
@@ -122,8 +132,33 @@ PostgreSQL host
 
 {{/*
 PostgreSQL port
+Returns PgBouncer port when pgbouncer is enabled, otherwise direct PostgreSQL/external port.
 */}}
 {{- define "bubble.postgresql.port" -}}
+{{- if .Values.pgbouncer.enabled }}
+{{- .Values.pgbouncer.service.port }}
+{{- else if .Values.postgresql.enabled }}
+{{- .Values.postgresql.service.port }}
+{{- else }}
+{{- .Values.externalPostgresql.port }}
+{{- end }}
+{{- end }}
+
+{{/*
+PostgreSQL direct host (bypasses PgBouncer — used by PgBouncer itself to reach Postgres)
+*/}}
+{{- define "bubble.postgresql.direct.host" -}}
+{{- if .Values.postgresql.enabled }}
+{{- include "bubble.postgresql.fullname" . }}
+{{- else }}
+{{- .Values.externalPostgresql.host }}
+{{- end }}
+{{- end }}
+
+{{/*
+PostgreSQL direct port (bypasses PgBouncer — used by PgBouncer itself to reach Postgres)
+*/}}
+{{- define "bubble.postgresql.direct.port" -}}
 {{- if .Values.postgresql.enabled }}
 {{- .Values.postgresql.service.port }}
 {{- else }}
