@@ -189,7 +189,7 @@ backend:
       storageClass: ""
 
 # ============================================================================
-# Celery Worker Configuration
+# Huey Worker Configuration
 # ============================================================================
 worker:
   enabled: true
@@ -199,27 +199,6 @@ worker:
     requests:
       cpu: 50m
       memory: 128Mi
-
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 80
-
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-
-# ============================================================================
-# Celery Beat Configuration
-# ============================================================================
-beat:
-  enabled: true
-
-  resources:
-    requests:
-      cpu: 10m
-      memory: 64Mi
 
   nodeSelector: {}
   tolerations: []

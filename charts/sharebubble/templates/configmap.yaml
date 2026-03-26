@@ -8,5 +8,4 @@ data:
   {{- range $key, $value := .Values.backend.django }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
-  CELERY_BROKER_URL: {{ include "bubble.redis.url" . | quote }}
   REDIS_URL: {{ include "bubble.redis.url" . | quote }}

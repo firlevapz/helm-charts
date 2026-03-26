@@ -89,13 +89,6 @@ Worker fullname
 {{- end }}
 
 {{/*
-Beat fullname
-*/}}
-{{- define "bubble.beat.fullname" -}}
-{{- printf "%s-beat" (include "bubble.fullname" .) | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 PostgreSQL fullname
 */}}
 {{- define "bubble.postgresql.fullname" -}}

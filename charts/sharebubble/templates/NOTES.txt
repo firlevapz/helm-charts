@@ -57,10 +57,7 @@
    - Backend: {{ include "bubble.backend.fullname" . }}
 {{- end }}
 {{- if .Values.worker.enabled }}
-   - Celery Worker: {{ include "bubble.worker.fullname" . }}
-{{- end }}
-{{- if .Values.beat.enabled }}
-   - Celery Beat: {{ include "bubble.beat.fullname" . }}
+   - Huey Worker: {{ include "bubble.worker.fullname" . }}
 {{- end }}
 {{- if .Values.postgresql.enabled }}
    - PostgreSQL: {{ include "bubble.postgresql.fullname" . }} (internal)
