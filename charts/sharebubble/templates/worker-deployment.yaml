@@ -59,6 +59,10 @@ spec:
                   name: {{ .Values.externalRedis.existingSecret | default (printf "%s-external-redis" (include "bubble.fullname" .)) }}
                   key: {{ .Values.externalRedis.existingSecretPasswordKey | default "password" }}
             {{- end }}
+            {{- if .Values.isbnLookup.enabled }}
+            - name: ISBN_LOOKUP_BASE_URL
+              value: {{ include "bubble.isbnLookup.url" . | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
           volumeMounts:

@@ -117,6 +117,20 @@ Redis fullname
 {{- end }}
 
 {{/*
+ISBN Lookup fullname
+*/}}
+{{- define "bubble.isbnLookup.fullname" -}}
+{{- printf "%s-isbn-lookup" (include "bubble.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+ISBN Lookup internal base URL
+*/}}
+{{- define "bubble.isbnLookup.url" -}}
+http://{{ include "bubble.isbnLookup.fullname" . }}:{{ .Values.isbnLookup.service.port }}
+{{- end }}
+
+{{/*
 PostgreSQL host
 Returns PgBouncer host when pgbouncer is enabled, otherwise direct PostgreSQL/external host.
 */}}

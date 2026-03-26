@@ -226,6 +226,40 @@ beat:
   affinity: {}
 
 # ============================================================================
+# ISBN Lookup Service Configuration
+# ============================================================================
+isbnLookup:
+  enabled: true
+
+  image:
+    repository: ghcr.io/treibhausdonaufeld/isbn-lookup
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  service:
+    port: 8000
+
+  # Corresponds to DEBUG=1 inside the container.
+  debug: false
+
+  # Container-level security context.
+  # Override if the image requires a specific UID / does not run as non-root.
+  securityContext: {}
+  #  runAsNonRoot: true
+  #  runAsUser: 1000
+  #  allowPrivilegeEscalation: false
+
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      memory: 64Mi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# ============================================================================
 # PostgreSQL Configuration
 # ============================================================================
 postgresql:
