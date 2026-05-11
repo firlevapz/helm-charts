@@ -1,0 +1,38 @@
+{{- if .Values.cronjobs.enabled }}
+{{- $host := .Values.cronjobs.webserverHost | default (printf "%s-lotzapp" .Release.Name) }}
+{{- range .Values.cronjobs.jobs }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ $.Release.Name }}-cron-{{ .name }}"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ $.Release.Name }}"
+    app.kubernetes.io/component: cronjob
+spec:
+  schedule: {{ .schedule | quote }}
+  concurrencyPolicy: {{ $.Values.cronjobs.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ $.Values.cronjobs.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ $.Values.cronjobs.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: cron
+              image: "{{ $.Values.images.cronjob.repository }}:{{ $.Values.images.cronjob.tag }}"
+              imagePullPolicy: {{ $.Values.images.cronjob.pullPolicy }}
+              command:
+                - /bin/sh
+                - -c
+                - >-
+                  /usr/bin/curl -sf http://{{ $host }}{{ .path }} 2>&1
+                  | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+{{- end }}
+{{- end }}

@@ -17,9 +17,50 @@ images:
     repository: crazymax/pure-ftpd
     tag: latest
     pullPolicy: IfNotPresent
+  # Minimal Alpine-based image used by cron jobs (has curl + busybox awk).
+  cronjob:
+    repository: alpine/curl
+    tag: "latest"
+    pullPolicy: IfNotPresent
 
 networkPolicy:
   enabled: false
+
+cronjobs:
+  enabled: true
+  # In-cluster hostname of the lotzapp webserver.
+  # Defaults to the lotzapp service: <release-name>-lotzapp
+  webserverHost: ""
+  # Keep only the last N successful / failed job pods for log inspection.
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  # Prevent a new job from starting if the previous run is still active.
+  concurrencyPolicy: Forbid
+  jobs:
+    - name: send-ar-auto
+      schedule: "* * * * *"
+      path: /send_ar_auto.php
+    - name: webshop-api
+      schedule: "*/12 * * * *"
+      path: /module/webshop/api.php
+    - name: er-mail
+      schedule: "37 3 * * *"
+      path: /module/er/mail.php
+    - name: artikel-send-email
+      schedule: "*/30 * * * *"
+      path: /module/artikel/send_email.php
+    - name: clear-warenkorb
+      schedule: "*/15 * * * *"
+      path: /shop2/clear_warenkorb.php
+    - name: webshop-api-mail
+      schedule: "30 3 * * *"
+      path: /module/webshop/api_mail.php
+    - name: webshop-create-termine
+      schedule: "30 1 * * *"
+      path: /module/webshop/create_termine.php
+    - name: webshop-bestellungen-create
+      schedule: "*/3 * * * *"
+      path: /module/webshop/bestellungen_create.php
 
 serviceAccount:
   create: false
