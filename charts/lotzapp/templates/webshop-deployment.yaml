@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Release.Name }}-webshop"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: webshop
+spec:
+  replicas: {{ .Values.webshop.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: lotzapp
+      app.kubernetes.io/instance: "{{ .Release.Name }}"
+      app.kubernetes.io/component: webshop
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: lotzapp
+        app.kubernetes.io/instance: "{{ .Release.Name }}"
+        app.kubernetes.io/component: webshop
+    spec:
+      containers:
+        - name: webshop
+          image: "{{ .Values.images.webshop.repository }}:{{ .Values.images.webshop.tag }}"
+          imagePullPolicy: {{ .Values.images.webshop.pullPolicy }}
+          command:
+            - bash
+            - -c
+            - apache2-foreground
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: webshop-env
+              mountPath: /var/www/html/.env
+              subPath: .env
+      volumes:
+        - name: webshop-env
+          secret:
+            secretName: {{ .Values.webshop.envFile.secretName | quote }}
+            items:
+              - key: {{ .Values.webshop.envFile.key | quote }}
+                path: .env

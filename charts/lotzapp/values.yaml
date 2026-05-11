@@ -1,0 +1,129 @@
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+images:
+  lotzapp:
+    repository: ghcr.io/lotzapp/lotzappv1.0
+    tag: docker
+    pullPolicy: IfNotPresent
+  database:
+    repository: mariadb
+    tag: "11"
+    pullPolicy: IfNotPresent
+  migration:
+    repository: lotzapp/lotzapp.migration
+    tag: latest
+    pullPolicy: IfNotPresent
+  ftp:
+    repository: crazymax/pure-ftpd
+    tag: latest
+    pullPolicy: IfNotPresent
+  webshop:
+    repository: ghcr.io/lotzapp/lotzappv1.0
+    tag: docker
+    pullPolicy: IfNotPresent
+
+networkPolicy:
+  enabled: false
+
+serviceAccount:
+  create: false
+  name: ""
+
+database:
+  rootPassword: "ROOT_PASSWORD"
+  storage:
+    size: 10Gi
+    accessMode: ReadWriteOnce
+    storageClassName: ""
+
+migration:
+  mariadbHost: ""
+  mariadbPort: "3306"
+  mariadbUser: root
+  mariadbPassword: "ROOT_PASSWORD"
+  initialSchemaSql: ""
+  initialInsertsSql: ""
+
+lotzapp:
+  replicaCount: 1
+  command:
+    - bash
+    - -c
+    - apache2-foreground
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: lotzapp.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  persistence:
+    data:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteMany
+      storageClassName: ""
+    documents:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteMany
+      storageClassName: ""
+    images:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteOnce
+      storageClassName: ""
+    home:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteOnce
+      storageClassName: ""
+  envFile:
+    secretName: lotzapp-env
+    key: .env
+
+ftp:
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    controlPort: 2100
+    passivePortStart: 30000
+    passivePortEnd: 30009
+  persistence:
+    config:
+      enabled: true
+      size: 1Gi
+      accessMode: ReadWriteOnce
+      storageClassName: ""
+
+webshop:
+  replicaCount: 1
+  command:
+    - bash
+    - -c
+    - apache2-foreground
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: webshop.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  envFile:
+    secretName: webshop-env
+    key: .env

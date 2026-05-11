@@ -1,0 +1,17 @@
+Thank you for installing lotzapp.
+
+This chart deploys:
+- database (MariaDB)
+- migration (as initContainer in lotzapp)
+- lotzapp
+- ftp
+- webshop
+
+Important post-installation steps:
+1. Create Secret objects for .env files and set:
+   - lotzapp.envFile.secretName
+   - webshop.envFile.secretName
+2. Provide migration SQL in values:
+   - migration.initialSchemaSql
+   - migration.initialInsertsSql
+3. Enable ingress and configure hostnames if needed.

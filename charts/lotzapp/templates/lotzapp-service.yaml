@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Release.Name }}-lotzapp"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: lotzapp
+spec:
+  type: {{ .Values.lotzapp.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.lotzapp.service.port }}
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: lotzapp

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Release.Name }}-webshop"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: webshop
+spec:
+  type: {{ .Values.webshop.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.webshop.service.port }}
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: webshop

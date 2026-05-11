@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ .Release.Name }}-webshop"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: webshop
+spec:
+  ingressClassName: {{ .Values.webshop.ingress.className | quote }}
+  rules:
+    - host: {{ (index .Values.webshop.ingress.hosts 0).host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: "{{ .Release.Name }}-webshop"
+                port:
+                  number: {{ .Values.webshop.service.port }}

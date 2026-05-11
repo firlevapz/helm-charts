@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-lotzapp-migration"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: migration
+data:
+  initial_schema.sql: {{ .Values.migration.initialSchemaSql | default "-- set migration.initialSchemaSql in values" | quote }}
+  initial_inserts.sql: {{ .Values.migration.initialInsertsSql | default "-- set migration.initialInsertsSql in values" | quote }}

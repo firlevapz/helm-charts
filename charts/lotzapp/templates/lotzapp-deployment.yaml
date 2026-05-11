@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Release.Name }}-lotzapp"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: lotzapp
+spec:
+  replicas: {{ .Values.lotzapp.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: lotzapp
+      app.kubernetes.io/instance: "{{ .Release.Name }}"
+      app.kubernetes.io/component: lotzapp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: lotzapp
+        app.kubernetes.io/instance: "{{ .Release.Name }}"
+        app.kubernetes.io/component: lotzapp
+    spec:
+      initContainers:
+        - name: migration
+          image: "{{ .Values.images.migration.repository }}:{{ .Values.images.migration.tag }}"
+          imagePullPolicy: {{ .Values.images.migration.pullPolicy }}
+          env:
+            - name: MARIADB_HOST
+              value: "{{ .Release.Name }}-lotzapp-database"
+            - name: MARIADB_PORT
+              value: {{ .Values.migration.mariadbPort | quote }}
+            - name: MARIADB_USER
+              value: {{ .Values.migration.mariadbUser | quote }}
+            - name: MARIADB_PWD
+              value: {{ .Values.migration.mariadbPassword | quote }}
+          command:
+            - bash
+            - -c
+            - ./wait-for-it.sh {{ .Release.Name }}-lotzapp-database:3306 --strict --timeout=30 -- ./migrate.sh
+          volumeMounts:
+            - name: migration-sql
+              mountPath: /var/migration/initial_schema.sql
+              subPath: initial_schema.sql
+            - name: migration-sql
+              mountPath: /var/migration/initial_inserts.sql
+              subPath: initial_inserts.sql
+      containers:
+        - name: lotzapp
+          image: "{{ .Values.images.lotzapp.repository }}:{{ .Values.images.lotzapp.tag }}"
+          imagePullPolicy: {{ .Values.images.lotzapp.pullPolicy }}
+          command:
+            - bash
+            - -c
+            - apache2-foreground
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/html/data
+            - name: documents
+              mountPath: /var/www/html/documents
+            - name: images
+              mountPath: /var/www/html/images
+            - name: home
+              mountPath: /var/www/html/home
+            - name: app-env
+              mountPath: /var/www/html/.env
+              subPath: .env
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: "{{ .Release.Name }}-lotzapp-data"
+        - name: documents
+          persistentVolumeClaim:
+            claimName: "{{ .Release.Name }}-lotzapp-documents"
+        - name: images
+          persistentVolumeClaim:
+            claimName: "{{ .Release.Name }}-lotzapp-images"
+        - name: home
+          persistentVolumeClaim:
+            claimName: "{{ .Release.Name }}-lotzapp-home"
+        - name: app-env
+          secret:
+            secretName: {{ .Values.lotzapp.envFile.secretName | quote }}
+            items:
+              - key: {{ .Values.lotzapp.envFile.key | quote }}
+                path: .env
+        - name: migration-sql
+          configMap:
+            name: "{{ .Release.Name }}-lotzapp-migration"
