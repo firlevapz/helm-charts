@@ -176,6 +176,16 @@ webshop:
           - path: /
             pathType: Prefix
     tls: []
+  env:
+    DYNAMIC_SHOP: "TRUE"
+    # Leave SERVER_URL empty to auto-derive: http://<lotzapp ingress host>/shop_v2
+    SERVER_URL: ""
+    SERVER_PATH: "index.php"
+    # Leave SHOP_URL empty to auto-derive: http://<webshop ingress host>/shop_v2/
+    SHOP_URL: ""
+    SHOP_ID: "0"
   envFile:
-    secretName: webshop-env
+    # Leave secretName empty to use the chart-generated secret (recommended).
+    # Set to an existing Secret name to supply a fully custom .env instead.
+    secretName: ""
     key: .env

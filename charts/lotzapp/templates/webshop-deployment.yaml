@@ -43,7 +43,7 @@ spec:
       volumes:
         - name: webshop-env
           secret:
-            secretName: {{.Values.webshop.envFile.secretName | quote}}
+            secretName: {{ .Values.webshop.envFile.secretName | default (printf "%s-webshop-env" .Release.Name) | quote }}
             items:
               - key: {{.Values.webshop.envFile.key | quote}}
                 path: .env
