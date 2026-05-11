@@ -11,7 +11,7 @@ images:
     pullPolicy: IfNotPresent
   database:
     repository: mariadb
-    tag: "11"
+    tag: "12" # previously just 12
     pullPolicy: IfNotPresent
   ftp:
     repository: crazymax/pure-ftpd
@@ -30,7 +30,7 @@ database:
   enabled: true
   rootPassword: "ROOT_PASSWORD"
   storage:
-    size: 10Gi
+    size: 100Mi
     accessMode: ReadWriteOnce
     storageClassName: ""
   # External database settings — only used when database.enabled is false.
@@ -70,22 +70,22 @@ lotzapp:
   persistence:
     data:
       enabled: true
-      size: 5Gi
-      accessMode: ReadWriteMany
+      size: 100Mi
+      accessMode: ReadWriteOnce
       storageClassName: ""
     documents:
       enabled: true
-      size: 5Gi
-      accessMode: ReadWriteMany
+      size: 100Mi
+      accessMode: ReadWriteOnce
       storageClassName: ""
     images:
       enabled: true
-      size: 5Gi
+      size: 100Mi
       accessMode: ReadWriteOnce
       storageClassName: ""
     home:
       enabled: true
-      size: 5Gi
+      size: 100Mi
       accessMode: ReadWriteOnce
       storageClassName: ""
   envFile:
@@ -93,6 +93,7 @@ lotzapp:
     key: .env
 
 ftp:
+  enabled: false
   replicaCount: 1
   service:
     type: ClusterIP
@@ -102,7 +103,7 @@ ftp:
   persistence:
     config:
       enabled: true
-      size: 1Gi
+      size: 100Mi
       accessMode: ReadWriteOnce
       storageClassName: ""
 

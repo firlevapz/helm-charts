@@ -4,7 +4,7 @@ This chart deploys:
 - database (MariaDB) — optional, see below
 - migration (as initContainer in lotzapp)
 - lotzapp
-- ftp
+- ftp — optional (ftp.enabled, default: false)
 - webshop
 
 ╔══════════════════════════════════════════════════════╗
