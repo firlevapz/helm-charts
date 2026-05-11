@@ -39,3 +39,55 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- default "default" .Values.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+  Effective database host.
+  Returns the in-cluster service name when the built-in DB is enabled,
+  or the user-supplied external host otherwise.
+*/}}
+{{- define "lotzapp.databaseHost" -}}
+{{- if .Values.database.enabled -}}
+{{- printf "%s-lotzapp-database" .Release.Name -}}
+{{- else -}}
+{{- required "database.external.host is required when database.enabled is false" .Values.database.external.host -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+  Effective database port.
+*/}}
+{{- define "lotzapp.databasePort" -}}
+{{- if .Values.database.enabled -}}
+3306
+{{- else -}}
+{{- .Values.database.external.port | default "3306" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+  Effective database user for migrations.
+  Prefers migration.mariadbUser override, then database.external.user / root.
+*/}}
+{{- define "lotzapp.databaseUser" -}}
+{{- if .Values.migration.mariadbUser -}}
+{{- .Values.migration.mariadbUser -}}
+{{- else if .Values.database.enabled -}}
+root
+{{- else -}}
+{{- .Values.database.external.user | default "root" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+  Effective database password for migrations.
+  Prefers migration.mariadbPassword override, then database.rootPassword / database.external.password.
+*/}}
+{{- define "lotzapp.databasePassword" -}}
+{{- if .Values.migration.mariadbPassword -}}
+{{- .Values.migration.mariadbPassword -}}
+{{- else if .Values.database.enabled -}}
+{{- .Values.database.rootPassword -}}
+{{- else -}}
+{{- required "database.external.password is required when database.enabled is false" .Values.database.external.password -}}
+{{- end -}}
+{{- end -}}

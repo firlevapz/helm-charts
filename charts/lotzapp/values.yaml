@@ -6,15 +6,15 @@ imagePullSecrets: []
 images:
   lotzapp:
     repository: ghcr.io/lotzapp/lotzappv1.0
-    tag: docker
+    tag: branch-docker
     pullPolicy: IfNotPresent
   database:
     repository: mariadb
     tag: "11"
     pullPolicy: IfNotPresent
   migration:
-    repository: lotzapp/lotzapp.migration
-    tag: latest
+    repository: ghcr.io/lotzapp/lotzappv1.0
+    tag: branch-docker
     pullPolicy: IfNotPresent
   ftp:
     repository: crazymax/pure-ftpd
@@ -22,7 +22,7 @@ images:
     pullPolicy: IfNotPresent
   webshop:
     repository: ghcr.io/lotzapp/lotzappv1.0
-    tag: docker
+    tag: branch-docker
     pullPolicy: IfNotPresent
 
 networkPolicy:
@@ -33,17 +33,25 @@ serviceAccount:
   name: ""
 
 database:
+  # Set to false to skip deploying the built-in MariaDB and use an external database instead.
+  enabled: true
   rootPassword: "ROOT_PASSWORD"
   storage:
     size: 10Gi
     accessMode: ReadWriteOnce
     storageClassName: ""
+  # External database settings — only used when database.enabled is false.
+  external:
+    host: ""
+    port: "3306"
+    user: "root"
+    password: ""
 
 migration:
-  mariadbHost: ""
-  mariadbPort: "3306"
-  mariadbUser: root
-  mariadbPassword: "ROOT_PASSWORD"
+  # DB connection is derived from database.* values automatically.
+  # Override only if the migration user/password differs from the database credentials.
+  mariadbUser: ""
+  mariadbPassword: ""
   initialSchemaSql: ""
   initialInsertsSql: ""
 

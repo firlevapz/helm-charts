@@ -1,17 +1,54 @@
 Thank you for installing lotzapp.
 
 This chart deploys:
-- database (MariaDB)
+- database (MariaDB) — optional, see below
 - migration (as initContainer in lotzapp)
 - lotzapp
 - ftp
 - webshop
 
-Important post-installation steps:
+╔══════════════════════════════════════════════════════╗
+║               DATABASE CONFIGURATION                 ║
+╚══════════════════════════════════════════════════════╝
+
+Built-in MariaDB (default, database.enabled=true):
+
+  database:
+    enabled: true
+    rootPassword: "CHANGE_ME"
+
+External / managed database (database.enabled=false):
+
+  database:
+    enabled: false
+    external:
+      host: "my-db-host.example.com"
+      port: "3306"      # optional, defaults to 3306
+      user: "app_user"
+      password: "CHANGE_ME"
+
+When using an external database the MariaDB Deployment, PVC,
+Secret and Service are NOT created.
+The migration initContainer still runs and connects to the
+external host automatically.
+
+Optional per-migration credential override (takes precedence
+over database.* values when set):
+
+  migration:
+    mariadbUser: "migration_user"
+    mariadbPassword: "CHANGE_ME"
+
+╔══════════════════════════════════════════════════════╗
+║          IMPORTANT POST-INSTALLATION STEPS           ║
+╚══════════════════════════════════════════════════════╝
+
 1. Create Secret objects for .env files and set:
    - lotzapp.envFile.secretName
    - webshop.envFile.secretName
+
 2. Provide migration SQL in values:
    - migration.initialSchemaSql
    - migration.initialInsertsSql
+
 3. Enable ingress and configure hostnames if needed.

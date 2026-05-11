@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/instance: "{{ .Release.Name }}"
     app.kubernetes.io/component: lotzapp
 spec:
-  replicas: {{ .Values.lotzapp.replicaCount }}
+  replicas: {{ .Values.lotzapp.replicaCount}}
   selector:
     matchLabels:
       app.kubernetes.io/name: lotzapp
@@ -23,20 +23,20 @@ spec:
       initContainers:
         - name: migration
           image: "{{ .Values.images.migration.repository }}:{{ .Values.images.migration.tag }}"
-          imagePullPolicy: {{ .Values.images.migration.pullPolicy }}
+          imagePullPolicy: {{ .Values.images.migration.pullPolicy}}
           env:
             - name: MARIADB_HOST
-              value: "{{ .Release.Name }}-lotzapp-database"
+              value: {{ include "lotzapp.databaseHost" . | quote}}
             - name: MARIADB_PORT
-              value: {{ .Values.migration.mariadbPort | quote }}
+              value: {{ include "lotzapp.databasePort" . | quote}}
             - name: MARIADB_USER
-              value: {{ .Values.migration.mariadbUser | quote }}
+              value: {{ include "lotzapp.databaseUser" . | quote}}
             - name: MARIADB_PWD
-              value: {{ .Values.migration.mariadbPassword | quote }}
+              value: {{ include "lotzapp.databasePassword" . | quote}}
           command:
             - bash
             - -c
-            - ./wait-for-it.sh {{ .Release.Name }}-lotzapp-database:3306 --strict --timeout=30 -- ./migrate.sh
+            - './wait-for-it.sh {{ include "lotzapp.databaseHost" . }}:{{ include "lotzapp.databasePort" . }} --strict --timeout=30 -- ./migrate.sh'
           volumeMounts:
             - name: migration-sql
               mountPath: /var/migration/initial_schema.sql
@@ -47,7 +47,7 @@ spec:
       containers:
         - name: lotzapp
           image: "{{ .Values.images.lotzapp.repository }}:{{ .Values.images.lotzapp.tag }}"
-          imagePullPolicy: {{ .Values.images.lotzapp.pullPolicy }}
+          imagePullPolicy: {{ .Values.images.lotzapp.pullPolicy}}
           command:
             - bash
             - -c
@@ -83,9 +83,9 @@ spec:
             claimName: "{{ .Release.Name }}-lotzapp-home"
         - name: app-env
           secret:
-            secretName: {{ .Values.lotzapp.envFile.secretName | quote }}
+            secretName: {{ .Values.lotzapp.envFile.secretName | quote}}
             items:
-              - key: {{ .Values.lotzapp.envFile.key | quote }}
+              - key: {{ .Values.lotzapp.envFile.key | quote}}
                 path: .env
         - name: migration-sql
           configMap:
