@@ -13,46 +13,15 @@ spec:
       port: {{ .Values.ftp.service.controlPort }}
       targetPort: 2100
       protocol: TCP
-    - name: ftp-passive-30000
-      port: 30000
-      targetPort: 30000
+    {{- $start := int .Values.ftp.service.passivePortStart }}
+    {{- $end := int .Values.ftp.service.passivePortEnd }}
+    {{- range $i := until (int (add1 (sub $end $start))) }}
+    {{- $port := add $start $i }}
+    - name: ftp-p-{{ $port }}
+      port: {{ $port }}
+      targetPort: {{ $port }}
       protocol: TCP
-    - name: ftp-passive-30001
-      port: 30001
-      targetPort: 30001
-      protocol: TCP
-    - name: ftp-passive-30002
-      port: 30002
-      targetPort: 30002
-      protocol: TCP
-    - name: ftp-passive-30003
-      port: 30003
-      targetPort: 30003
-      protocol: TCP
-    - name: ftp-passive-30004
-      port: 30004
-      targetPort: 30004
-      protocol: TCP
-    - name: ftp-passive-30005
-      port: 30005
-      targetPort: 30005
-      protocol: TCP
-    - name: ftp-passive-30006
-      port: 30006
-      targetPort: 30006
-      protocol: TCP
-    - name: ftp-passive-30007
-      port: 30007
-      targetPort: 30007
-      protocol: TCP
-    - name: ftp-passive-30008
-      port: 30008
-      targetPort: 30008
-      protocol: TCP
-    - name: ftp-passive-30009
-      port: 30009
-      targetPort: 30009
-      protocol: TCP
+    {{- end }}
   selector:
     app.kubernetes.io/name: lotzapp
     app.kubernetes.io/instance: "{{ .Release.Name }}"

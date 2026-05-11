@@ -7,7 +7,9 @@ metadata:
     app.kubernetes.io/instance: "{{ .Release.Name }}"
     app.kubernetes.io/component: webshop
 spec:
-  ingressClassName: {{ .Values.webshop.ingress.className | quote }}
+  {{- if .Values.webshop.ingress.className }}
+  ingressClassName: {{ .Values.webshop.ingress.className }}
+  {{- end }}
   rules:
     - host: {{ (index .Values.webshop.ingress.hosts 0).host | quote }}
       http:

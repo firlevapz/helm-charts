@@ -31,36 +31,13 @@ spec:
             - name: ftp-control
               containerPort: 2100
               protocol: TCP
-            - name: ftp-passive-30000
-              containerPort: 30000
+            {{- $start := int .Values.ftp.service.passivePortStart }}
+            {{- $end := int .Values.ftp.service.passivePortEnd }}
+            {{- range $i := until (int (add1 (sub $end $start))) }}
+            {{- $port := add $start $i }}
+            - containerPort: {{ $port }}
               protocol: TCP
-            - name: ftp-passive-30001
-              containerPort: 30001
-              protocol: TCP
-            - name: ftp-passive-30002
-              containerPort: 30002
-              protocol: TCP
-            - name: ftp-passive-30003
-              containerPort: 30003
-              protocol: TCP
-            - name: ftp-passive-30004
-              containerPort: 30004
-              protocol: TCP
-            - name: ftp-passive-30005
-              containerPort: 30005
-              protocol: TCP
-            - name: ftp-passive-30006
-              containerPort: 30006
-              protocol: TCP
-            - name: ftp-passive-30007
-              containerPort: 30007
-              protocol: TCP
-            - name: ftp-passive-30008
-              containerPort: 30008
-              protocol: TCP
-            - name: ftp-passive-30009
-              containerPort: 30009
-              protocol: TCP
+            {{- end }}
           volumeMounts:
             - name: ftp-config
               mountPath: /data

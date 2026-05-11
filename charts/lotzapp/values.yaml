@@ -4,7 +4,8 @@ fullnameOverride: ""
 imagePullSecrets: []
 
 images:
-  lotzapp:
+  # Shared image used by lotzapp, migration (initContainer), and webshop.
+  app:
     repository: ghcr.io/lotzapp/lotzappv1.0
     tag: branch-docker
     pullPolicy: IfNotPresent
@@ -12,17 +13,9 @@ images:
     repository: mariadb
     tag: "11"
     pullPolicy: IfNotPresent
-  migration:
-    repository: ghcr.io/lotzapp/lotzappv1.0
-    tag: branch-docker
-    pullPolicy: IfNotPresent
   ftp:
     repository: crazymax/pure-ftpd
     tag: latest
-    pullPolicy: IfNotPresent
-  webshop:
-    repository: ghcr.io/lotzapp/lotzappv1.0
-    tag: branch-docker
     pullPolicy: IfNotPresent
 
 networkPolicy:

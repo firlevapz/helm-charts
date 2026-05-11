@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/instance: "{{ .Release.Name }}"
     app.kubernetes.io/component: lotzapp
 spec:
-  replicas: {{ .Values.lotzapp.replicaCount}}
+  replicas: {{.Values.lotzapp.replicaCount}}
   selector:
     matchLabels:
       app.kubernetes.io/name: lotzapp
@@ -20,19 +20,23 @@ spec:
         app.kubernetes.io/instance: "{{ .Release.Name }}"
         app.kubernetes.io/component: lotzapp
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: migration
-          image: "{{ .Values.images.migration.repository }}:{{ .Values.images.migration.tag }}"
-          imagePullPolicy: {{ .Values.images.migration.pullPolicy}}
+          image: "{{ .Values.images.app.repository }}:{{ .Values.images.app.tag }}"
+          imagePullPolicy: {{.Values.images.app.pullPolicy}}
           env:
             - name: MARIADB_HOST
-              value: {{ include "lotzapp.databaseHost" . | quote}}
+              value: {{include "lotzapp.databaseHost" . | quote}}
             - name: MARIADB_PORT
-              value: {{ include "lotzapp.databasePort" . | quote}}
+              value: {{include "lotzapp.databasePort" . | quote}}
             - name: MARIADB_USER
-              value: {{ include "lotzapp.databaseUser" . | quote}}
+              value: {{include "lotzapp.databaseUser" . | quote}}
             - name: MARIADB_PWD
-              value: {{ include "lotzapp.databasePassword" . | quote}}
+              value: {{include "lotzapp.databasePassword" . | quote}}
           command:
             - bash
             - -c
@@ -46,8 +50,8 @@ spec:
               subPath: initial_inserts.sql
       containers:
         - name: lotzapp
-          image: "{{ .Values.images.lotzapp.repository }}:{{ .Values.images.lotzapp.tag }}"
-          imagePullPolicy: {{ .Values.images.lotzapp.pullPolicy}}
+          image: "{{ .Values.images.app.repository }}:{{ .Values.images.app.tag }}"
+          imagePullPolicy: {{.Values.images.app.pullPolicy}}
           command:
             - bash
             - -c
@@ -83,9 +87,9 @@ spec:
             claimName: "{{ .Release.Name }}-lotzapp-home"
         - name: app-env
           secret:
-            secretName: {{ .Values.lotzapp.envFile.secretName | quote}}
+            secretName: {{.Values.lotzapp.envFile.secretName | quote}}
             items:
-              - key: {{ .Values.lotzapp.envFile.key | quote}}
+              - key: {{.Values.lotzapp.envFile.key | quote}}
                 path: .env
         - name: migration-sql
           configMap:

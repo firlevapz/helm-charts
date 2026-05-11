@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/instance: "{{ .Release.Name }}"
     app.kubernetes.io/component: webshop
 spec:
-  replicas: {{ .Values.webshop.replicaCount }}
+  replicas: {{.Values.webshop.replicaCount}}
   selector:
     matchLabels:
       app.kubernetes.io/name: lotzapp
@@ -20,10 +20,14 @@ spec:
         app.kubernetes.io/instance: "{{ .Release.Name }}"
         app.kubernetes.io/component: webshop
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: webshop
-          image: "{{ .Values.images.webshop.repository }}:{{ .Values.images.webshop.tag }}"
-          imagePullPolicy: {{ .Values.images.webshop.pullPolicy }}
+          image: "{{ .Values.images.app.repository }}:{{ .Values.images.app.tag }}"
+          imagePullPolicy: {{.Values.images.app.pullPolicy}}
           command:
             - bash
             - -c
@@ -39,7 +43,7 @@ spec:
       volumes:
         - name: webshop-env
           secret:
-            secretName: {{ .Values.webshop.envFile.secretName | quote }}
+            secretName: {{.Values.webshop.envFile.secretName | quote}}
             items:
-              - key: {{ .Values.webshop.envFile.key | quote }}
+              - key: {{.Values.webshop.envFile.key | quote}}
                 path: .env
