@@ -87,7 +87,7 @@ spec:
             claimName: "{{ .Release.Name }}-lotzapp-home"
         - name: app-env
           secret:
-            secretName: {{.Values.lotzapp.envFile.secretName | quote}}
+            secretName: {{ .Values.lotzapp.envFile.secretName | default (printf "%s-lotzapp-env" .Release.Name) | quote }}
             items:
               - key: {{.Values.lotzapp.envFile.key | quote}}
                 path: .env

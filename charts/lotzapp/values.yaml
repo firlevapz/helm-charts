@@ -88,8 +88,58 @@ lotzapp:
       size: 100Mi
       accessMode: ReadWriteOnce
       storageClassName: ""
+  env:
+    # Application
+    ENVIRONMENT: "Dev"
+    ERROR_REPORTING: "ON"
+    ERROR_LOG_FILE: "logs/error.log"
+    # Server — leave SERVER_URL empty to auto-derive: http://<lotzapp ingress host>
+    SERVER_ID: "7"
+    AUTO_LOGIN: "0"
+    SERVER_URL: ""
+    SERVER_NAME: "LotzApp"
+    # Database — leave DB_HOST/USER/PASSWORD empty to auto-derive from database.*
+    DB_HOST: ""
+    DB_USER: ""
+    DB_PASSWORD: ""
+    DB_NAME: "lotzapp"
+    # FTP Database — defaults to the same connection as the main DB
+    FTP_DB_HOST: ""
+    FTP_DB_USER: ""
+    FTP_DB_PASSWORD: ""
+    FTP_DB_NAME: "lotzapp"
+    FTP_DB_PORT: "" # auto-derived from database.*
+    # Permissions
+    FILE_PERMISSION: "0777"
+    FOLDER_PERMISSION: "0777"
+    # PDF Formular
+    FORMULAR_BASE: "https://develop.lotzapp.dev"
+    FORMULAR_SERVER_TWO_BASE: "http://192.168.250.53/lotzapp"
+    FORMULAR_WORK_SERVER_BASE: "https://form.develop.lotzapp.dev"
+    # Session
+    SESSION_TIMEOUT: "1200"
+    # Webshop — leave SHOP_URL empty to auto-derive: https://<webshop ingress host>/shop
+    SHOP_URL: ""
+    # Authentication
+    AUTHENTICATION_URL: "https://id.develop.lotzapp.dev"
+    # Cashpoint
+    CASHPOINT_URL: "cashpoint:50051"
+    CASHPOINT_WEBHOOK_USER: "cashpoint"
+    CASHPOINT_WEBHOOK_PASSWORD: "cashpoint"
+    # Email
+    EMAIL_BCC_ADDRESS: "emolotz@gmail.com"
+    EMAIL_TEST_ADDRESS: "emolotz@gmail.com"
+    MAIL_SMTP: "lotzapp.org"
+    MAIL_PASSWORD: "lotzapp123"
+    MAIL_USERNAME: "LOTZAPP"
+    SMTP_SSL_MNDT: "0"
+    SMTP_SSL_PORT: "465"
+    # Password Reset
+    RESET_CODE_LOTZAPP: "rwV3LD8fCZn29AFQxsXpvfZ_ZTTXnyqA"
   envFile:
-    secretName: lotzapp-env
+    # Leave secretName empty to use the chart-generated secret (recommended).
+    # Set to an existing Secret name to supply a fully custom .env instead.
+    secretName: ""
     key: .env
 
 ftp:
