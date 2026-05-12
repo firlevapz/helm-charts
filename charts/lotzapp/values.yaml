@@ -213,6 +213,7 @@ ftp:
       storageClassName: ""
 
 webshop:
+  enabled: false
   replicaCount: 1
   command:
     - bash

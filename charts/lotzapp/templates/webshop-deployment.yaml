@@ -1,3 +1,4 @@
+{{- if .Values.webshop.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -47,3 +48,4 @@ spec:
             items:
               - key: {{.Values.webshop.envFile.key | quote}}
                 path: .env
+{{- end }}
