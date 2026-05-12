@@ -18,6 +18,12 @@ spec:
             pathType: Prefix
             backend:
               service:
+                {{- if .Values.lotzapp.nginx.enabled }}
+                name: "{{ .Release.Name }}-lotzapp-nginx"
+                port:
+                  number: {{ .Values.lotzapp.nginx.service.port }}
+                {{- else }}
                 name: "{{ .Release.Name }}-lotzapp"
                 port:
                   number: {{ .Values.lotzapp.service.port }}
+                {{- end }}

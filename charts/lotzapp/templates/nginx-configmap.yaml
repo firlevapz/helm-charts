@@ -1,0 +1,39 @@
+{{- if .Values.lotzapp.nginx.enabled }}
+{{- $fastcgiPass := .Values.lotzapp.nginx.fastcgiPass | default (printf "%s-lotzapp:%d" .Release.Name (.Values.lotzapp.nginx.phpFpmPort | int)) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-lotzapp-nginx-conf"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: nginx
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name localhost;
+
+        root /var/www/html;
+        index index.php;
+
+        location / {
+            try_files $uri $uri/ /index.php?$query_string;
+        }
+
+        location ~ \.php(/.*)?$ {
+            fastcgi_split_path_info ^(.+\.php)(/.*)$;
+
+            include fastcgi_params;
+
+            fastcgi_pass {{ $fastcgiPass }};
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_index index.php;
+            fastcgi_param PATH_INFO $fastcgi_path_info;
+            fastcgi_hide_header Content-Length;
+
+            proxy_redirect off;
+            fastcgi_buffering on;
+        }
+    }
+{{- end }}

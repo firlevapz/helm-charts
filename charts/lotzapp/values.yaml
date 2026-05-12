@@ -22,6 +22,10 @@ images:
     repository: alpine/curl
     tag: "latest"
     pullPolicy: IfNotPresent
+  nginx:
+    repository: nginx
+    tag: alpine
+    pullPolicy: IfNotPresent
 
 networkPolicy:
   enabled: false
@@ -95,6 +99,16 @@ lotzapp:
     - bash
     - -c
     - apache2-foreground
+  nginx:
+    enabled: true
+    replicaCount: 1
+    # FastCGI upstream for PHP-FPM — defaults to <release>-lotzapp:<phpFpmPort>
+    fastcgiPass: ""
+    # Port the lotzapp container exposes for PHP-FPM.
+    phpFpmPort: 9000
+    service:
+      type: ClusterIP
+      port: 80
   service:
     type: ClusterIP
     port: 80
