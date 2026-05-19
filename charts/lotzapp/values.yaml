@@ -7,7 +7,7 @@ images:
   # Shared image used by lotzapp, migration (initContainer), and webshop.
   app:
     repository: ghcr.io/lotzapp/lotzappv1.0
-    tag: branch-docker
+    tag: branch-cloud
     pullPolicy: IfNotPresent
   database:
     repository: mariadb
@@ -147,7 +147,7 @@ lotzapp:
     # Application
     ENVIRONMENT: "Dev"
     ERROR_REPORTING: "ON"
-    ERROR_LOG_FILE: "logs/error.log"
+    ERROR_LOG_FILE: ""
     # Server — leave SERVER_URL empty to auto-derive: http://<lotzapp ingress host>
     SERVER_ID: "7"
     AUTO_LOGIN: "0"
