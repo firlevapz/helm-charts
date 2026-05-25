@@ -51,4 +51,27 @@ over database.* values when set):
    - migration.initialSchemaSql
    - migration.initialInsertsSql
 
-3. Enable ingress and configure hostnames if needed.
+3. Configure routing hostnames and gateway references:
+
+   HTTPRoute (default, Gateway API):
+     lotzapp:
+       httproute:
+         enabled: true                    # default
+         hostnames:
+           - lotzapp.example.com
+         parentRefs:
+           - name: "my-gateway"
+             namespace: "gateway-system"
+
+   Ingress (optional, legacy):
+     lotzapp:
+       httproute:
+         enabled: false
+       ingress:
+         enabled: true
+         className: "nginx"
+         hosts:
+           - host: lotzapp.example.com
+             paths:
+               - path: /
+                 pathType: Prefix

@@ -1,4 +1,4 @@
-{{- if .Values.webshop.enabled }}
+{{- if and .Values.webshop.enabled .Values.webshop.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,19 +7,31 @@ metadata:
     app.kubernetes.io/name: lotzapp
     app.kubernetes.io/instance: "{{ .Release.Name }}"
     app.kubernetes.io/component: webshop
+  {{- with .Values.webshop.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if .Values.webshop.ingress.className }}
   ingressClassName: {{ .Values.webshop.ingress.className }}
   {{- end }}
+  {{- if .Values.webshop.ingress.tls }}
+  tls:
+    {{- toYaml .Values.webshop.ingress.tls | nindent 4 }}
+  {{- end }}
   rules:
-    - host: {{ (index .Values.webshop.ingress.hosts 0).host | quote }}
+    {{- range .Values.webshop.ingress.hosts }}
+    - host: {{ .host | quote }}
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
             backend:
               service:
-                name: "{{ .Release.Name }}-webshop"
+                name: "{{ $.Release.Name }}-webshop"
                 port:
-                  number: {{ .Values.webshop.service.port }}
+                  number: {{ $.Values.webshop.service.port }}
+          {{- end }}
+    {{- end }}
 {{- end }}

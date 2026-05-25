@@ -1,0 +1,29 @@
+{{- if and .Values.webshop.enabled .Values.webshop.httproute.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: "{{ .Release.Name }}-webshop"
+  labels:
+    app.kubernetes.io/name: lotzapp
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/component: webshop
+  {{- with .Values.webshop.httproute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- toYaml .Values.webshop.httproute.parentRefs | nindent 4 }}
+  {{- if .Values.webshop.httproute.hostnames }}
+  hostnames:
+    {{- toYaml .Values.webshop.httproute.hostnames | nindent 4 }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: "{{ .Release.Name }}-webshop"
+          port: {{ .Values.webshop.service.port }}
+{{- end }}

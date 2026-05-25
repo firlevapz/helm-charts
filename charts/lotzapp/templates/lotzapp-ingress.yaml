@@ -1,3 +1,4 @@
+{{- if .Values.lotzapp.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -6,24 +7,37 @@ metadata:
     app.kubernetes.io/name: lotzapp
     app.kubernetes.io/instance: "{{ .Release.Name }}"
     app.kubernetes.io/component: lotzapp
+  {{- with .Values.lotzapp.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if .Values.lotzapp.ingress.className }}
   ingressClassName: {{ .Values.lotzapp.ingress.className }}
   {{- end }}
+  {{- if .Values.lotzapp.ingress.tls }}
+  tls:
+    {{- toYaml .Values.lotzapp.ingress.tls | nindent 4 }}
+  {{- end }}
   rules:
-    - host: {{ (index .Values.lotzapp.ingress.hosts 0).host | quote }}
+    {{- range .Values.lotzapp.ingress.hosts }}
+    - host: {{ .host | quote }}
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
             backend:
               service:
-                {{- if .Values.lotzapp.nginx.enabled }}
-                name: "{{ .Release.Name }}-lotzapp-nginx"
+                {{- if $.Values.lotzapp.nginx.enabled }}
+                name: "{{ $.Release.Name }}-lotzapp-nginx"
                 port:
-                  number: {{ .Values.lotzapp.nginx.service.port }}
+                  number: {{ $.Values.lotzapp.nginx.service.port }}
                 {{- else }}
-                name: "{{ .Release.Name }}-lotzapp"
+                name: "{{ $.Release.Name }}-lotzapp"
                 port:
-                  number: {{ .Values.lotzapp.service.port }}
+                  number: {{ $.Values.lotzapp.service.port }}
                 {{- end }}
+          {{- end }}
+    {{- end }}
+{{- end }}

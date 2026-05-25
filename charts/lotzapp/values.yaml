@@ -112,6 +112,16 @@ lotzapp:
   service:
     type: ClusterIP
     port: 80
+  httproute:
+    enabled: true
+    # parentRefs defines which Gateway(s) this route attaches to.
+    parentRefs:
+      - name: "gateway"
+        namespace: "default"
+        # sectionName: "https"  # uncomment to target a specific listener
+    hostnames:
+      - lotzapp.local
+    annotations: {}
   ingress:
     enabled: false
     className: ""
@@ -222,6 +232,15 @@ webshop:
   service:
     type: ClusterIP
     port: 80
+  httproute:
+    enabled: true
+    parentRefs:
+      - name: "gateway"
+        namespace: "default"
+        # sectionName: "https"  # uncomment to target a specific listener
+    hostnames:
+      - webshop.local
+    annotations: {}
   ingress:
     enabled: false
     className: ""
