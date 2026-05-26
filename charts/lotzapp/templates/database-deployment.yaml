@@ -21,6 +21,8 @@ spec:
         app.kubernetes.io/instance: "{{ .Release.Name }}"
         app.kubernetes.io/component: database
     spec:
+      securityContext:
+          fsGroup: 999  # 999 is standard for the official mariadb/mysql images
       containers:
         - name: database
           image: "{{ .Values.images.database.repository }}:{{ .Values.images.database.tag }}"
