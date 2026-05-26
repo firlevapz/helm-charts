@@ -52,6 +52,15 @@ spec:
         - name: lotzapp
           image: "{{ .Values.images.app.repository }}:{{ .Values.images.app.tag }}"
           imagePullPolicy: {{.Values.images.app.pullPolicy}}
+          env:
+            - name: MARIADB_HOST
+              value: {{include "lotzapp.databaseHost" . | quote}}
+            - name: MARIADB_PORT
+              value: {{include "lotzapp.databasePort" . | quote}}
+            - name: MARIADB_USER
+              value: {{include "lotzapp.databaseUser" . | quote}}
+            - name: MARIADB_PWD
+              value: {{include "lotzapp.databasePassword" . | quote}}
           ports:
             - name: http
               containerPort: 80
