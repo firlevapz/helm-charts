@@ -75,7 +75,7 @@ database:
   enabled: true
   rootPassword: "ROOT_PASSWORD"
   storage:
-    size: 100Mi
+    size: 500Mi
     accessMode: ReadWriteOnce
     storageClassName: ""
   # External database settings — only used when database.enabled is false.
