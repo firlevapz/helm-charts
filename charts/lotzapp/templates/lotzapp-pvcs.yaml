@@ -1,3 +1,4 @@
+{{- if .Values.lotzapp.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -8,52 +9,11 @@ metadata:
     app.kubernetes.io/component: lotzapp
 spec:
   accessModes:
-    - {{ .Values.lotzapp.persistence.data.accessMode | quote }}
+    - {{ .Values.lotzapp.persistence.accessMode | quote }}
   resources:
     requests:
-      storage: {{ .Values.lotzapp.persistence.data.size | quote }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: "{{ .Release.Name }}-lotzapp-documents"
-  labels:
-    app.kubernetes.io/name: lotzapp
-    app.kubernetes.io/instance: "{{ .Release.Name }}"
-    app.kubernetes.io/component: lotzapp
-spec:
-  accessModes:
-    - {{ .Values.lotzapp.persistence.documents.accessMode | quote }}
-  resources:
-    requests:
-      storage: {{ .Values.lotzapp.persistence.documents.size | quote }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: "{{ .Release.Name }}-lotzapp-images"
-  labels:
-    app.kubernetes.io/name: lotzapp
-    app.kubernetes.io/instance: "{{ .Release.Name }}"
-    app.kubernetes.io/component: lotzapp
-spec:
-  accessModes:
-    - {{ .Values.lotzapp.persistence.images.accessMode | quote }}
-  resources:
-    requests:
-      storage: {{ .Values.lotzapp.persistence.images.size | quote }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: "{{ .Release.Name }}-lotzapp-home"
-  labels:
-    app.kubernetes.io/name: lotzapp
-    app.kubernetes.io/instance: "{{ .Release.Name }}"
-    app.kubernetes.io/component: lotzapp
-spec:
-  accessModes:
-    - {{ .Values.lotzapp.persistence.home.accessMode | quote }}
-  resources:
-    requests:
-      storage: {{ .Values.lotzapp.persistence.home.size | quote }}
+      storage: {{ .Values.lotzapp.persistence.size | quote }}
+  {{- if .Values.lotzapp.persistence.storageClassName }}
+  storageClassName: {{ .Values.lotzapp.persistence.storageClassName | quote }}
+  {{- end }}
+{{- end }}

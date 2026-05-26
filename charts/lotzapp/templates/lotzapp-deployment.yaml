@@ -57,30 +57,25 @@ spec:
               containerPort: 80
               protocol: TCP
           volumeMounts:
-            - name: data
+            - name: lotzapp-data
               mountPath: /var/www/html/data
-            - name: documents
+              subPath: data
+            - name: lotzapp-data
               mountPath: /var/www/html/documents
-            - name: images
+              subPath: documents
+            - name: lotzapp-data
               mountPath: /var/www/html/images
-            - name: home
+              subPath: images
+            - name: lotzapp-data
               mountPath: /var/www/html/home
+              subPath: home
             - name: app-env
               mountPath: /var/www/html/.env
               subPath: .env
       volumes:
-        - name: data
+        - name: lotzapp-data
           persistentVolumeClaim:
             claimName: "{{ .Release.Name }}-lotzapp-data"
-        - name: documents
-          persistentVolumeClaim:
-            claimName: "{{ .Release.Name }}-lotzapp-documents"
-        - name: images
-          persistentVolumeClaim:
-            claimName: "{{ .Release.Name }}-lotzapp-images"
-        - name: home
-          persistentVolumeClaim:
-            claimName: "{{ .Release.Name }}-lotzapp-home"
         - name: app-env
           secret:
             secretName: {{ .Values.lotzapp.envFile.secretName | default (printf "%s-lotzapp-env" .Release.Name) | quote }}

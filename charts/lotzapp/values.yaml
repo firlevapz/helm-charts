@@ -133,26 +133,12 @@ lotzapp:
             pathType: Prefix
     tls: []
   persistence:
-    data:
-      enabled: true
-      size: 100Mi
-      accessMode: ReadWriteOnce
-      storageClassName: ""
-    documents:
-      enabled: true
-      size: 100Mi
-      accessMode: ReadWriteOnce
-      storageClassName: ""
-    images:
-      enabled: true
-      size: 100Mi
-      accessMode: ReadWriteOnce
-      storageClassName: ""
-    home:
-      enabled: true
-      size: 100Mi
-      accessMode: ReadWriteOnce
-      storageClassName: ""
+    enabled: true
+    # Single PVC for all lotzapp data; subfolders (data/, documents/, images/, home/)
+    # are mounted as subPaths inside the container.
+    size: 500Mi
+    accessMode: ReadWriteOnce
+    storageClassName: ""
   env:
     # Application
     ENVIRONMENT: "Dev"
