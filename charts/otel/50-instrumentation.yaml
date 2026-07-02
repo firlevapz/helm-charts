@@ -1,0 +1,20 @@
+# Auto-instrumentation template. When a workload is annotated (see README),
+# the operator injects the matching language SDK so apps emit TRACES (and
+# metrics/logs for some languages) WITHOUT code changes. Telemetry is sent to
+# the node-local agent's OTLP HTTP port, which forwards it onward.
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: default
+  namespace: observability
+spec:
+  exporter:
+    # Send to the per-node agent (DaemonSet) created above.
+    endpoint: http://agent-collector.observability.svc.cluster.local:4318
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1.0"   # sample everything; lower (e.g. 0.1) to reduce volume

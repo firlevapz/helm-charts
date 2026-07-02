@@ -1,0 +1,94 @@
+# Single-replica cluster collector (Deployment):
+#   - k8s_cluster: cluster-level metrics (deployments, pods phase, node conditions...)
+#   - k8sobjects: Kubernetes Events streamed as logs
+# One instance only — these are cluster-scoped sources, not per-node.
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: cluster
+  namespace: observability
+spec:
+  mode: deployment
+  replicas: 1
+  image: otel/opentelemetry-collector-contrib:latest
+  resources:
+    requests:
+      cpu: "20m"
+      memory: "64Mi"
+    limits:
+      memory: "128Mi"
+  serviceAccount: otel-collector
+  env:
+    - name: OTLP_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: otlp-export
+          key: token
+    - name: OTLP_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: otlp-export
+          key: endpoint
+    - name: K8S_CLUSTER_NAME
+      valueFrom:
+        secretKeyRef:
+          name: otlp-export
+          key: cluster
+  config:
+    receivers:
+      kubeletstats:
+        auth_type: serviceAccount
+        collection_interval: 20s
+        endpoint: https://${env:OTEL_K8S_NODE_NAME}:10250
+        extra_metadata_labels:
+        - k8s.volume.type
+        insecure_skip_verify: true
+        metric_groups:
+        - container
+        - pod
+        - volume
+        - node
+      k8s_cluster:
+        collection_interval: 30s
+        allocatable_types_to_report: [cpu, memory, storage, ephemeral-storage]
+        node_conditions_to_report: [Ready, MemoryPressure]
+      k8sobjects:
+        objects:
+          - name: events
+            mode: watch
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      # Stamp the cluster name onto cluster-level metrics and the k8s Events
+      # stream. Value comes from the per-cluster otlp-export secret (key: cluster).
+      resource/cluster:
+        attributes:
+          - key: k8s.cluster.name
+            value: "${env:K8S_CLUSTER_NAME}"
+            action: upsert
+      batch:
+        send_batch_size: 8192
+        timeout: 10s
+    exporters:
+      otlphttp:
+        endpoint: "${env:OTLP_ENDPOINT}"
+        compression: gzip
+        headers:
+          authorization: "Bearer ${env:OTLP_TOKEN}"
+        retry_on_failure:
+          enabled: true
+        sending_queue:
+          enabled: true
+          queue_size: 10000
+    service:
+      pipelines:
+        metrics:
+          receivers: [k8s_cluster]
+          processors: [memory_limiter, resource/cluster, batch]
+          exporters: [otlphttp]
+        logs:
+          receivers: [k8sobjects]
+          processors: [memory_limiter, resource/cluster, batch]
+          exporters: [otlphttp]

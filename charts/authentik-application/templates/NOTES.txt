@@ -1,0 +1,13 @@
+authentik-application installed for: {{ .Values.application.slug }}
+
+A PostSync hook upserts the Authentik Application (portal tile):
+  name:        {{ .Values.application.name }}
+  slug:        {{ .Values.application.slug }}
+  launch URL:  {{ .Values.application.launchUrl }}
+  group:       {{ .Values.application.group | default "(none)" }}
+
+It is provider-less (a link tile) and has no policy bindings, so it is visible and
+launchable for all users. When this release is deleted, a PreDelete hook removes the
+Application from Authentik.
+
+API: {{ .Values.authentik.url }} (token from secret {{ .Values.authentik.tokenSecret.name }}/{{ .Values.authentik.tokenSecret.key }})

@@ -1,0 +1,67 @@
+{{- $checksum := include "vapid-generator.script" . | sha256sum | trunc 8 }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # The script checksum is part of the name so a logic change produces a NEW Job
+  # (Job specs are immutable, so re-applying a changed Job in place would fail).
+  # Unchanged script → same name → ArgoCD re-applies a no-op.
+  name: {{ include "vapid-generator.fullname" . }}-{{ $checksum }}
+  namespace: {{ include "vapid-generator.secretNamespace" . }}
+  labels:
+    {{- include "vapid-generator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "vapid-generator.annotations" . | nindent 4 }}
+spec:
+  backoffLimit: 3
+  {{- with .Values.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ . }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "vapid-generator.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "vapid-generator.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: generate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["node", "/scripts/generate.js"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: TARGET_NAMESPACE
+              value: {{ include "vapid-generator.secretNamespace" . | quote }}
+            - name: SECRET_NAME
+              value: {{ .Values.secret.name | quote }}
+            - name: VAPID_SUBJECT
+              value: {{ .Values.vapidSubject | quote }}
+            - name: SECRET_LABELS
+              value: {{ include "vapid-generator.selectorLabels" . | fromYaml | toJson | quote }}
+            - name: KEY_SUBJECT
+              value: {{ .Values.keys.subject | quote }}
+            - name: KEY_PUBLIC
+              value: {{ .Values.keys.publicKey | quote }}
+            - name: KEY_PRIVATE
+              value: {{ .Values.keys.privateKey | quote }}
+            - name: KEY_PUBLIC_ALIAS
+              value: {{ .Values.keys.publicKeyAlias | quote }}
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: script
+          configMap:
+            name: {{ include "vapid-generator.fullname" . }}

@@ -1,0 +1,36 @@
+{{- if .Values.migrate.enabled }}
+# Schema migration as an ArgoCD Sync hook at wave -1. Replaces the GlitchTip chart's own
+# migrate Job (disabled), whose helm `pre-upgrade` hook ArgoCD runs as PreSync — before the
+# secret + CNPG DB this Application creates exist. As a Sync hook it is ordered by sync-wave
+# with the normal resources: it runs after the SECRET_KEY secret + CNPG cluster (wave -10)
+# are healthy and before the web Deployment (wave 0) starts, so web never boots on an
+# unmigrated DB. backoffLimit lets it retry while CNPG finishes provisioning.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "glitchtip-bootstrap.fullname" . }}-migrate
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glitchtip-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: {{ .Values.migrate.syncWave | quote }}
+spec:
+  backoffLimit: {{ .Values.migrate.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "glitchtip-bootstrap.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: {{ .Values.migrate.command | toJson }}
+          env:
+            {{- include "glitchtip-bootstrap.runtimeEnv" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}

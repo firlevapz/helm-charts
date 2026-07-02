@@ -1,0 +1,163 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "glitchtip-bootstrap.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glitchtip-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .Values.syncWave | quote }}
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+data:
+  bootstrap.py: |
+    # Run via: ./manage.py shell -c "exec(open('/scripts/bootstrap.py').read())"
+    # `manage.py shell` has already called django.setup(), so models import cleanly.
+    #
+    # Idempotent. Wrapped in a retry loop because on a fresh install this PostSync hook
+    # may start before the migrate hook has created the schema.
+    import os, time, json, base64, ssl, urllib.request, urllib.error
+
+    def log(*a):
+        print("[glitchtip-bootstrap]", *a, flush=True)
+
+    OIDC_PROVIDER    = os.environ.get("OIDC_PROVIDER", "openid_connect")
+    OIDC_PROVIDER_ID = os.environ.get("OIDC_PROVIDER_ID", "authentik")
+    OIDC_NAME        = os.environ.get("OIDC_NAME", "Authentik")
+    OIDC_CLIENT_ID   = os.environ.get("OIDC_CLIENT_ID", "glitchtip")
+    OIDC_CLIENT_SECRET = os.environ.get("OIDC_CLIENT_SECRET", "")
+    OIDC_SERVER_URL  = os.environ.get("OIDC_SERVER_URL", "")
+
+    ORG_NAME        = os.environ.get("ORG_NAME", "kutsam")
+    PROJECT_NAME    = os.environ.get("PROJECT_NAME", "kart")
+    DSN_SECRET_NAME = os.environ.get("DSN_SECRET_NAME", "glitchtip-kart-dsn")
+    DSN_SECRET_KEY  = os.environ.get("DSN_SECRET_KEY", "SENTRY_DSN")
+
+    def configure_oidc():
+        from allauth.socialaccount.models import SocialApp
+        if not OIDC_CLIENT_SECRET or not OIDC_SERVER_URL:
+            log("OIDC client secret or server_url missing - skipping SSO setup")
+            return
+        fields = {f.name for f in SocialApp._meta.get_fields()}
+        lookup = {"provider": OIDC_PROVIDER}
+        if "provider_id" in fields:
+            lookup["provider_id"] = OIDC_PROVIDER_ID
+        app = SocialApp.objects.filter(**lookup).first()
+        if app is None:
+            app = SocialApp(provider=OIDC_PROVIDER)
+            if "provider_id" in fields:
+                app.provider_id = OIDC_PROVIDER_ID
+        app.name = OIDC_NAME
+        app.client_id = OIDC_CLIENT_ID
+        app.secret = OIDC_CLIENT_SECRET
+        if "settings" in fields:
+            app.settings = {"server_url": OIDC_SERVER_URL}
+        app.save()
+        # allauth surfaces a provider only for SocialApps linked to the active Site.
+        # GlitchTip pins no SITE_ID, so link to every Site to be safe.
+        try:
+            from django.contrib.sites.models import Site
+            if Site.objects.exists():
+                app.sites.set(Site.objects.all())
+        except Exception as e:
+            log("site link skipped:", repr(e))
+        log("OIDC SocialApp upserted:", OIDC_PROVIDER_ID)
+
+    def ensure_dsn():
+        from apps.organizations_ext.models import Organization
+        from apps.projects.models import Project, ProjectKey
+        org = Organization.objects.filter(name=ORG_NAME).first()
+        if org is None:
+            org = Organization(name=ORG_NAME)
+            org.save()
+            log("created organization:", ORG_NAME)
+        proj = Project.objects.filter(organization=org, name=PROJECT_NAME).first()
+        if proj is None:
+            proj = Project(organization=org, name=PROJECT_NAME)
+            proj.save()
+            log("created project:", PROJECT_NAME)
+        key = ProjectKey.objects.filter(project=proj).first()
+        if key is None:
+            key = ProjectKey.objects.create(project=proj, name="default")
+            log("created project key")
+        get_dsn = getattr(key, "get_dsn", None)
+        dsn = get_dsn() if callable(get_dsn) else getattr(key, "dsn", "")
+        if not dsn:
+            raise RuntimeError("DSN is empty - check GLITCHTIP_DOMAIN")
+        return dsn
+
+    def write_secret(dsn):
+        sa = "/var/run/secrets/kubernetes.io/serviceaccount"
+        host = os.environ["KUBERNETES_SERVICE_HOST"]
+        port = os.environ.get("KUBERNETES_SERVICE_PORT", "443")
+        with open(sa + "/namespace") as f: ns = f.read().strip()
+        with open(sa + "/token") as f: token = f.read().strip()
+        ctx = ssl.create_default_context(cafile=sa + "/ca.crt")
+        data = {DSN_SECRET_KEY: base64.b64encode(dsn.encode()).decode()}
+        base = "https://%s:%s/api/v1/namespaces/%s/secrets" % (host, port, ns)
+        auth = {"Authorization": "Bearer " + token}
+        body = json.dumps({
+            "apiVersion": "v1", "kind": "Secret",
+            "metadata": {"name": DSN_SECRET_NAME},
+            "type": "Opaque", "data": data,
+        }).encode()
+        req = urllib.request.Request(base, data=body, method="POST",
+            headers=dict(auth, **{"Content-Type": "application/json"}))
+        try:
+            urllib.request.urlopen(req, context=ctx)
+            log("created secret", DSN_SECRET_NAME)
+            return
+        except urllib.error.HTTPError as e:
+            if e.code != 409:
+                raise
+        patch = json.dumps({"data": data}).encode()
+        req = urllib.request.Request(base + "/" + DSN_SECRET_NAME, data=patch, method="PATCH",
+            headers=dict(auth, **{"Content-Type": "application/merge-patch+json"}))
+        urllib.request.urlopen(req, context=ctx)
+        log("patched secret", DSN_SECRET_NAME)
+
+    def main():
+        attempts = int(os.environ.get("RETRY_ATTEMPTS", "60"))
+        delay = int(os.environ.get("RETRY_DELAY_SECONDS", "5"))
+        last = None
+        for i in range(attempts):
+            try:
+                configure_oidc()
+                dsn = ensure_dsn()
+                write_secret(dsn)
+                log("bootstrap complete")
+                return
+            except Exception as e:
+                last = e
+                log("attempt %d/%d failed: %r (retry in %ds)" % (i + 1, attempts, e, delay))
+                time.sleep(delay)
+        raise SystemExit("bootstrap failed after retries: %r" % (last,))
+
+    main()
+  member-sync.py: |
+    # Run via: ./manage.py shell -c "exec(open('/scripts/member-sync.py').read())"
+    # Adds every user to the shared organization (ORG_SLUG). Idempotent: skips users who
+    # are already members. add_user makes the very first member OWNER and everyone after a
+    # regular member, so SSO users land as members of the org that holds the kart project.
+    import os
+    from django.contrib.auth import get_user_model
+    from apps.organizations_ext.models import Organization
+
+    U = get_user_model()
+    slug = os.environ.get("ORG_SLUG", "kutsam")
+    org = Organization.objects.filter(slug=slug).first()
+    if org is None:
+        print("[member-sync] org '%s' not found yet - nothing to do" % slug)
+        raise SystemExit(0)
+
+    existing = {m.user_id for m in org.organization_users.all()}
+    added = 0
+    for u in U.objects.all():
+        if u.id in existing:
+            continue
+        org.add_user(u)
+        added += 1
+        print("[member-sync] added", getattr(u, "email", u.id))
+    print("[member-sync] done: added %d, org now has %d members"
+          % (added, org.organization_users.count()))

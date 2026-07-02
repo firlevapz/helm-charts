@@ -1,0 +1,15 @@
+apiVersion: v2
+name: authentik-application
+description: Manage a single Authentik Application (launchable portal tile) via the Authentik API
+
+# Authentik Applications can only be created by the worker from static blueprints or
+# via the API — there is no way to "loop over" dynamic data (e.g. open pull requests)
+# in a blueprint. This chart fills that gap: it manages ONE Application through the
+# Authentik REST API, lifecycle-bound to its ArgoCD release. A PostSync hook upserts
+# the Application; a PreDelete hook removes it when the release is deleted. Driven per
+# item (e.g. once per preview PR) from an ApplicationSet, it yields one portal tile /
+# launch URL per item, created and torn down automatically.
+type: application
+
+version: 0.1.0
+appVersion: "1.0.0"

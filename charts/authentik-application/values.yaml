@@ -1,0 +1,51 @@
+# Default values for authentik-application.
+#
+# Manages a single Authentik Application (a launchable tile in the user portal) via
+# the Authentik REST API, using two ArgoCD hook Jobs:
+#   - PostSync  → create/update the Application (idempotent upsert by slug)
+#   - PreDelete → delete the Application when this release is removed
+#
+# The Application is a provider-less "link/bookmark": just a name + launch URL. This
+# is intentional for per-PR preview tiles — the shared `kart` OIDC provider can back
+# only one Application, and a provider can't be reused, so per-PR entries are plain
+# links. Auth still flows through the shared client when the user opens the app.
+
+authentik:
+  # In-cluster base URL of the Authentik server API.
+  url: "http://authentik-server"
+  # Secret (in the release namespace) holding an Authentik API token with permission
+  # to manage applications. Defaults to the bootstrap admin token.
+  tokenSecret:
+    name: authentik-local-secrets
+    key: akadmin-token
+
+application:
+  # Unique slug — required (e.g. pr-22-kart).
+  slug: ""
+  # Display name shown on the tile — required (e.g. "Kart PR #22").
+  name: ""
+  # Launch URL the tile opens — required (e.g. https://pr-22-kart.example.com).
+  launchUrl: ""
+  # Optional library section grouping tiles together in the portal.
+  group: ""
+  metaDescription: ""
+  metaPublisher: ""
+  openInNewTab: true
+  # any → visible to all users (no policy bindings are created by this chart).
+  policyEngineMode: any
+
+image:
+  repository: curlimages/curl
+  tag: "8.11.1"
+  pullPolicy: IfNotPresent
+
+# Sync-wave for the PostSync upsert hook.
+syncWave: "1"
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 32Mi
+
+annotations: {}
+labels: {}

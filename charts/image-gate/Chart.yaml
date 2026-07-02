@@ -1,0 +1,9 @@
+apiVersion: v2
+name: image-gate
+description: >-
+  ArgoCD PreSync hook Job that blocks a sync until the target container image tag
+  exists in the registry, so pods never enter ImagePullBackOff while CI is still
+  building/pushing the image.
+type: application
+version: 0.1.0
+appVersion: "1.0"

@@ -1,0 +1,69 @@
+# image-gate — a single ArgoCD PreSync hook Job that waits for image.repository:tag
+# to appear in the registry before ArgoCD proceeds with the rest of the sync.
+#
+# Why: each kart commit rewrites the Deployment's image tag to sha-<short>. ArgoCD
+# wants that tag the instant you push, but CI needs minutes to build and push it.
+# Without a gate the new pod rolls immediately and sits in ImagePullBackOff; because
+# the kubelet caps image-pull retry backoff at a compiled-in 5 minutes, the pod can
+# then take up to 5 min to recover even after the image lands. This hook makes the
+# Deployment roll only once the image is actually pullable, so backoff never happens.
+
+image:
+  # Fully qualified registry/repository to probe, e.g. ghcr.io/acme/api or
+  # registry.example.com/team/svc. MUST match the consuming chart's image.repository
+  # exactly — if it differs from what the Deployment pulls, the gate is moot.
+  # Required (no default) so the chart stays repository-agnostic.
+  repository: ""
+  # The tag the Deployment will pull, e.g. sha-<short_sha_7>. Required (no default).
+  tag: ""
+
+gate:
+  # Registry-probe image. crane:debug ships a busybox shell so we can loop in-container.
+  # crane authenticates via the standard docker keychain — anonymous for public images,
+  # or the credentials in registryAuthSecret below for private ones. Pin to a digest for
+  # production reproducibility.
+  toolImage: gcr.io/go-containerregistry/crane:debug
+  # Max time to wait for the image before failing the sync (seconds). On timeout the
+  # sync fails and ArgoCD retries on its next refresh; existing pods keep serving.
+  timeoutSeconds: 1800
+  # Delay between registry checks (seconds).
+  intervalSeconds: 15
+  # Optional name of a kubernetes.io/dockerconfigjson Secret that already lives in the
+  # destination namespace, mounted so crane can authenticate to a private registry.
+  # Typically the same imagePullSecret the Deployment uses. Empty = anonymous pull.
+  registryAuthSecret: ""
+
+  # Optional CI-awareness. When enabled, each poll also asks GitHub for the check-runs of
+  # ci.sha and fails the gate the instant the build concludes in failure — instead of
+  # blocking the full timeoutSeconds for a tag that will never be pushed (the build for
+  # this SHA failed). Best-effort: any error reaching GitHub (network, auth, rate-limit)
+  # is ignored and the gate simply falls back to plain image-presence polling. The image
+  # is always checked first, so a commit whose image DID publish is released regardless of
+  # any other red check.
+  ci:
+    enabled: false
+    # FULL 40-char commit SHA to query — the ApplicationSet generator's .sha / .head_sha,
+    # NOT the 7-char sha-<...> tag. Required when enabled.
+    sha: ""
+    # owner/repo the commit lives in, e.g. kutsam/kart2. Required when enabled.
+    repo: ""
+    # Exact GitHub check-run name to watch (typically the build/publish job). Empty =
+    # consider EVERY check run on the commit, failing fast if any concludes in failure.
+    checkName: ""
+    # Name of a Secret in the destination namespace holding a GitHub token with
+    # checks:read on the repo. Required when enabled.
+    tokenSecret: ""
+    tokenSecretKey: token
+    # GitHub REST API base (override for GitHub Enterprise).
+    apiBase: https://api.github.com
+
+# Sync-wave for the hook. PreSync hooks always run before the Sync phase; this only
+# orders this hook relative to other PreSync hooks (lower runs earlier).
+syncWave: "-5"
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    memory: 64Mi

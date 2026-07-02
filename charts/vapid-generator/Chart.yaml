@@ -1,0 +1,15 @@
+apiVersion: v2
+name: vapid-generator
+description: Generates a Web Push (VAPID) EC P-256 keypair into a Kubernetes Secret
+
+# Companion to the secrets-generator chart. secrets-generator produces random
+# strings entirely in Helm templates; a VAPID keypair cannot be (the public key
+# is an EC point derived from the private scalar), so this chart runs a one-shot
+# Job that generates the pair with node's built-in crypto and writes the Secret.
+type: application
+
+# Bump on every change to the chart or its templates (SemVer).
+version: 0.1.0
+
+# Tracks the generation logic, not an upstream app.
+appVersion: "1.0.0"

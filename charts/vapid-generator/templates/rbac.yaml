@@ -1,0 +1,36 @@
+{{/*
+Narrowly scoped to the single target Secret: the Job only needs to read whether
+it already exists and create it if not. No update/delete — the keypair is never
+rotated in place.
+*/}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "vapid-generator.fullname" . }}
+  namespace: {{ include "vapid-generator.secretNamespace" . }}
+  labels:
+    {{- include "vapid-generator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "vapid-generator.annotations" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "vapid-generator.fullname" . }}
+  namespace: {{ include "vapid-generator.secretNamespace" . }}
+  labels:
+    {{- include "vapid-generator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "vapid-generator.annotations" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "vapid-generator.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "vapid-generator.serviceAccountName" . }}
+    namespace: {{ include "vapid-generator.secretNamespace" . }}

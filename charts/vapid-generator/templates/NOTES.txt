@@ -1,0 +1,26 @@
+vapid-generator installed.
+
+A one-shot Job ({{ include "vapid-generator.fullname" . }}-<scriptHash>) generates a
+Web Push (VAPID) keypair and writes it to Secret:
+
+  {{ .Values.secret.name }} (namespace: {{ include "vapid-generator.secretNamespace" . }})
+
+Keys written:
+  - {{ .Values.keys.subject }}     (= {{ .Values.vapidSubject }})
+  - {{ .Values.keys.publicKey }}
+  - {{ .Values.keys.privateKey }}
+{{- if .Values.keys.publicKeyAlias }}
+  - {{ .Values.keys.publicKeyAlias }}  (duplicate of {{ .Values.keys.publicKey }})
+{{- end }}
+
+The Job is idempotent — if the Secret already holds a key it does nothing, so
+re-syncs never rotate it.
+
+Inspect the public key:
+  kubectl get secret {{ .Values.secret.name }} -n {{ include "vapid-generator.secretNamespace" . }} \
+    -o jsonpath='{.data.{{ .Values.keys.publicKey }}}' | base64 -d; echo
+
+To regenerate (rotates the keypair — invalidates existing push subscriptions):
+  kubectl delete secret {{ .Values.secret.name }} -n {{ include "vapid-generator.secretNamespace" . }}
+  kubectl delete job -l app.kubernetes.io/instance={{ .Release.Name }} -n {{ include "vapid-generator.secretNamespace" . }}
+  # then re-sync / helm upgrade

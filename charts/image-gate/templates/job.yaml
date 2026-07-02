@@ -1,0 +1,134 @@
+{{- if not .Values.image.repository -}}
+{{- fail "image-gate: .Values.image.repository is required (the registry/repository the Deployment will pull)" -}}
+{{- end -}}
+{{- if not .Values.image.tag -}}
+{{- fail "image-gate: .Values.image.tag is required (the tag the Deployment will pull)" -}}
+{{- end -}}
+{{- if .Values.gate.ci.enabled -}}
+{{- if not .Values.gate.ci.sha -}}
+{{- fail "image-gate: gate.ci.sha (full commit SHA) is required when gate.ci.enabled" -}}
+{{- end -}}
+{{- if not .Values.gate.ci.repo -}}
+{{- fail "image-gate: gate.ci.repo (owner/repo) is required when gate.ci.enabled" -}}
+{{- end -}}
+{{- if not .Values.gate.ci.tokenSecret -}}
+{{- fail "image-gate: gate.ci.tokenSecret is required when gate.ci.enabled" -}}
+{{- end -}}
+{{- end -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "image-gate.fullname" . }}
+  labels:
+    {{- include "image-gate.labels" . | nindent 4 }}
+  annotations:
+    # Run before the Sync phase, every sync. If the image already exists the probe
+    # returns in ~1s, so the steady-state cost is negligible.
+    argocd.argoproj.io/hook: PreSync
+    # Delete the previous hook before recreating (clears a leftover failed Job so the
+    # name is free) and delete again after success (keep the namespace clean).
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: {{ .Values.syncWave | quote }}
+spec:
+  # No pod-level retries: the container loops internally until success or timeout.
+  backoffLimit: 0
+  # Hard ceiling, slightly above the in-loop timeout so the loop emits its own message.
+  activeDeadlineSeconds: {{ add (int .Values.gate.timeoutSeconds) 60 }}
+  ttlSecondsAfterFinished: 120
+  template:
+    metadata:
+      labels:
+        {{- include "image-gate.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- if .Values.gate.registryAuthSecret }}
+      volumes:
+        - name: docker-config
+          secret:
+            secretName: {{ .Values.gate.registryAuthSecret | quote }}
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+      {{- end }}
+      containers:
+        - name: wait-for-image
+          image: {{ .Values.gate.toolImage | quote }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: IMAGE
+              value: {{ printf "%s:%s" .Values.image.repository .Values.image.tag | quote }}
+            - name: TIMEOUT
+              value: {{ .Values.gate.timeoutSeconds | quote }}
+            - name: INTERVAL
+              value: {{ .Values.gate.intervalSeconds | quote }}
+            - name: CI_ENABLED
+              value: {{ .Values.gate.ci.enabled | quote }}
+            {{- if .Values.gate.ci.enabled }}
+            - name: CI_API
+              value: {{ .Values.gate.ci.apiBase | quote }}
+            - name: CI_REPO
+              value: {{ .Values.gate.ci.repo | quote }}
+            - name: CI_SHA
+              value: {{ .Values.gate.ci.sha | quote }}
+            - name: CI_CHECK_NAME
+              value: {{ .Values.gate.ci.checkName | quote }}
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gate.ci.tokenSecret | quote }}
+                  key: {{ .Values.gate.ci.tokenSecretKey | quote }}
+            {{- end }}
+            {{- if .Values.gate.registryAuthSecret }}
+            # crane reads $DOCKER_CONFIG/config.json for registry credentials.
+            - name: DOCKER_CONFIG
+              value: /docker
+            {{- end }}
+          command:
+            - /busybox/sh
+            - -c
+            - |
+              set -eu
+              i=0
+              max=$(( TIMEOUT / INTERVAL ))
+              echo "image-gate: waiting up to ${TIMEOUT}s for ${IMAGE}"
+
+              # Best-effort CI check: returns 0 only when GitHub reports a *failed* build
+              # for CI_SHA. Any error (disabled, network, auth, no matching run, an
+              # in-progress run) returns non-zero so the caller keeps waiting for the image.
+              ci_build_failed() {
+                [ "${CI_ENABLED:-false}" = "true" ] || return 1
+                url="${CI_API}/repos/${CI_REPO}/commits/${CI_SHA}/check-runs"
+                if [ -n "${CI_CHECK_NAME:-}" ]; then
+                  url="${url}?check_name=${CI_CHECK_NAME}"
+                fi
+                # busybox wget: one --header (Authorization); User-Agent via -U (GitHub
+                # rejects requests without one). GitHub returns v3 JSON without an Accept.
+                body=$(wget -q -O - -U image-gate \
+                  --header="Authorization: Bearer ${GITHUB_TOKEN}" "$url" 2>/dev/null) || return 1
+                # A failing conclusion only exists on a completed run; in-progress runs carry
+                # "conclusion":null and never match, so we never abort on a build still running.
+                echo "$body" | grep -oE '"conclusion": *"(failure|cancelled|timed_out|action_required|startup_failure)"' >/dev/null 2>&1
+              }
+
+              until crane manifest "$IMAGE" >/dev/null 2>&1; do
+                if ci_build_failed; then
+                  echo "image-gate: CI reports a failed build for ${CI_SHA} (${CI_REPO}) — failing the gate now so ArgoCD can re-sync once a new push changes the tag" >&2
+                  exit 1
+                fi
+                i=$((i + 1))
+                if [ "$i" -ge "$max" ]; then
+                  echo "image-gate: TIMEOUT after ${TIMEOUT}s — ${IMAGE} still not in registry" >&2
+                  exit 1
+                fi
+                echo "image-gate: [${i}/${max}] ${IMAGE} not present yet; retry in ${INTERVAL}s"
+                sleep "$INTERVAL"
+              done
+              echo "image-gate: ${IMAGE} is available — releasing sync"
+          {{- if .Values.gate.registryAuthSecret }}
+          volumeMounts:
+            - name: docker-config
+              mountPath: /docker
+              readOnly: true
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

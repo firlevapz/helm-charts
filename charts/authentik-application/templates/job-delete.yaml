@@ -1,0 +1,56 @@
+# PreDelete hook: remove the Application when this release is deleted (e.g. the PR is
+# closed and the ApplicationSet drops the child Application). ArgoCD runs PreDelete
+# hooks before pruning the release's resources, so the ConfigMap script is still
+# present here. Treats a missing Application (404) as success.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "authentik-application.fullname" . }}-delete
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "authentik-application.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreDelete
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "authentik-application.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: delete
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["sh", "/scripts/delete.sh"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            {{- include "authentik-application.env" . | nindent 12 }}
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "authentik-application.fullname" . }}
+            items:
+              - key: delete.sh
+                path: delete.sh
+        - name: tmp
+          emptyDir: {}

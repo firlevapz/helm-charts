@@ -1,0 +1,57 @@
+{{- if .Values.memberSync.enabled }}
+# Reconciler CronJob: adds every GlitchTip user to the shared organization (memberSync.orgSlug)
+# so OIDC users automatically gain access to the kart project. GlitchTip has no "default org
+# on signup" hook and adding one would require a custom image, so this runs the same Django
+# shell script periodically instead. Idempotent — it only adds users who aren't members yet.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "glitchtip-bootstrap.fullname" . }}-member-sync
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glitchtip-bootstrap.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.memberSync.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            {{- include "glitchtip-bootstrap.labels" . | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: member-sync
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command:
+                - ./manage.py
+                - shell
+                - -c
+                - exec(open('/scripts/member-sync.py').read())
+              env:
+                {{- include "glitchtip-bootstrap.runtimeEnv" . | nindent 16 }}
+                - name: ORG_SLUG
+                  value: {{ .Values.memberSync.orgSlug | quote }}
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+          volumes:
+            - name: scripts
+              configMap:
+                name: {{ include "glitchtip-bootstrap.fullname" . }}
+                items:
+                  - key: member-sync.py
+                    path: member-sync.py
+{{- end }}

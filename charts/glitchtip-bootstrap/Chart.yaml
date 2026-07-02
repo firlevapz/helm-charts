@@ -1,0 +1,15 @@
+apiVersion: v2
+name: glitchtip-bootstrap
+description: >-
+  One-shot GitOps bootstrap for a GlitchTip instance: registers the Authentik
+  OpenID Connect SocialApp (SSO) and creates the shared org/project + DSN that
+  every kart branch/PR preview reports to.
+type: application
+
+# GlitchTip's generic OIDC login and its project DSNs can only be created in the
+# database (admin UI / API) — there is no env-var-only way to do either. This chart
+# fills that gap with a PostSync hook Job that runs the GlitchTip image's Django
+# shell against the live DB, so the whole setup stays declarative in Git. The Job is
+# idempotent (upsert by lookup) and retries until migrations have completed.
+version: 0.1.0
+appVersion: "1.0.0"

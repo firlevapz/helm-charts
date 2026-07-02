@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cnpg-cluster
+description: A Helm chart for creating a CloudNativePG Cluster resource. Exposes
+  all common cluster settings as values with production-ready defaults.
+type: application
+version: 0.1.0

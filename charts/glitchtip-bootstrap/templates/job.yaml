@@ -1,0 +1,48 @@
+# PostSync hook: after the GlitchTip release (and its migrate hook) has synced, run the
+# GlitchTip image's Django shell to upsert the Authentik OIDC SocialApp and create the
+# shared kart org/project + DSN. hook-delete-policy BeforeHookCreation re-runs it on
+# every sync (idempotent) and keeps it out of ArgoCD's live-state diff.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "glitchtip-bootstrap.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "glitchtip-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: {{ .Values.syncWave | quote }}
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        {{- include "glitchtip-bootstrap.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - ./manage.py
+            - shell
+            - -c
+            - exec(open('/scripts/bootstrap.py').read())
+          env:
+            {{- include "glitchtip-bootstrap.env" . | nindent 12 }}
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ include "glitchtip-bootstrap.fullname" . }}
+            items:
+              - key: bootstrap.py
+                path: bootstrap.py

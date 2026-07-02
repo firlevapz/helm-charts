@@ -1,0 +1,67 @@
+# Default values for vapid-generator.
+#
+# This chart generates a Web Push (VAPID) keypair — a P-256 ECDSA pair encoded
+# the way the `web-push` library expects (base64url, uncompressed public point) —
+# and stores it in a Kubernetes Secret. A VAPID pair cannot be produced by Helm
+# template functions like the secrets-generator chart does for random strings,
+# because the public key is an EC point derived from the private scalar. Instead a
+# one-shot Job runs node's built-in crypto (byte-identical to `web-push
+# generate-vapid-keys`, no npm install at runtime) and writes the Secret via the
+# Kubernetes API.
+#
+# The Job is idempotent: if the Secret already holds a private key it leaves it
+# untouched, so re-syncs never rotate the keypair. To force regeneration, delete
+# the Secret (and the completed Job) and re-sync.
+
+secret:
+  # Name of the Secret to create.
+  name: kart-vapid-secrets
+  # Namespace for the Secret. Empty string → the release namespace.
+  namespace: ""
+
+# VAPID "sub" claim (RFC 8292) — a mailto: or https: contact for the push
+# service. Stored as VAPID_SUBJECT. Changing this after the Secret exists has no
+# effect (the Job does not overwrite); delete the Secret to apply a new subject.
+vapidSubject: "mailto:admin@example.com"
+
+# The four keys written into the Secret's stringData. Renaming maps the generated
+# values onto whatever the consuming app expects.
+keys:
+  subject: VAPID_SUBJECT
+  publicKey: VAPID_PUBLIC_KEY
+  privateKey: VAPID_PRIVATE_KEY
+  # Public key duplicated under a second name for the frontend build, mirroring
+  # cluster/bootstrap/kart-vapid-secret.yaml. Set to "" to omit.
+  publicKeyAlias: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+
+# Image for the generator Job. Needs node; nothing is pulled from npm at runtime.
+image:
+  repository: node
+  tag: "22-alpine"
+  pullPolicy: IfNotPresent
+
+# ArgoCD sync-wave for all rendered resources. Keep negative so the Secret is
+# created before the workloads that consume it (kart releases) sync.
+syncWave: "-10"
+
+# Seconds after which Kubernetes' TTL controller deletes the completed Job.
+# Leave null under ArgoCD: the Job is a tracked resource, so TTL-deleting it would
+# make the app OutOfSync and selfHeal would immediately recreate it — an endless
+# ~TTL-interval re-run loop. With null the completed Job lingers harmlessly as a
+# record (its pod is Completed, using no CPU/memory) and is replaced only when the
+# script changes (new Job name, old one pruned). Set a value only for plain
+# `helm install` without ArgoCD selfHeal.
+ttlSecondsAfterFinished: null
+
+serviceAccount:
+  # Name of the ServiceAccount the Job runs as. Empty → derived from the release.
+  name: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# Extra annotations / labels added to every rendered resource.
+annotations: {}
+labels: {}

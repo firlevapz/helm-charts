@@ -1,0 +1,40 @@
+# Cluster identity
+name: cluster
+namespace: default
+
+# Extra metadata applied to the Cluster resource. annotations is where Argo CD
+# sync-wave / hook annotations belong (e.g. argocd.argoproj.io/sync-wave: "-10").
+annotations: {}
+labels: {}
+
+# Number of PostgreSQL instances (replicas)
+instances: 1
+
+# PostgreSQL image — use a specific patch tag in production to avoid unexpected upgrades
+imageName: ghcr.io/cloudnative-pg/postgresql:18
+
+# Database bootstrap: initialises the database and owner role on first start
+bootstrap:
+  initdb:
+    database: app
+    owner: app
+
+# Persistent volume size for each instance
+storage:
+  size: 1Gi
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "128Mi"
+
+# PostgreSQL server parameters (postgresql.conf)
+postgresql:
+  parameters:
+    max_connections: "100"
+    shared_buffers: "128MB"
+    effective_cache_size: "512MB"
+    work_mem: "4MB"
+    maintenance_work_mem: "64MB"
+    log_statement: "none"
+    log_min_duration_statement: "1000"
