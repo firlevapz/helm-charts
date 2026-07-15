@@ -65,14 +65,14 @@ oidc:
 
 # ── Shared kart project + DSN ──────────────────────────────────────────────────
 org:
-  name: kutsam
+  name: my-org
 project:
-  name: kart
+  name: my-project
 
 # Secret the bootstrap Job writes the DSN into; consumed by every kart branch/PR
 # deployment (apps/templates/apps/kart-branches.yaml, kart-pr.yaml).
 dsnSecret:
-  name: glitchtip-kart-dsn
+  name: glitchtip-dsn
   key: SENTRY_DSN
 
 # Periodically add every user to the shared organization so OIDC users get access to the
@@ -82,7 +82,7 @@ memberSync:
   enabled: true
   schedule: "*/5 * * * *"
   # Organization (slug) users are added to — the org the bootstrap created for the DSN.
-  orgSlug: kutsam
+  orgSlug: my-org
 
 serviceAccount:
   name: glitchtip-bootstrap

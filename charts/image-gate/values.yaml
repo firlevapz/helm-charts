@@ -45,7 +45,7 @@ gate:
     # FULL 40-char commit SHA to query — the ApplicationSet generator's .sha / .head_sha,
     # NOT the 7-char sha-<...> tag. Required when enabled.
     sha: ""
-    # owner/repo the commit lives in, e.g. kutsam/kart2. Required when enabled.
+    # owner/repo the commit lives in, e.g. my-org/my-project. Required when enabled.
     repo: ""
     # Exact GitHub check-run name to watch (typically the build/publish job). Empty =
     # consider EVERY check run on the commit, failing fast if any concludes in failure.

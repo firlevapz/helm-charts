@@ -29,9 +29,9 @@ data:
     OIDC_CLIENT_SECRET = os.environ.get("OIDC_CLIENT_SECRET", "")
     OIDC_SERVER_URL  = os.environ.get("OIDC_SERVER_URL", "")
 
-    ORG_NAME        = os.environ.get("ORG_NAME", "kutsam")
-    PROJECT_NAME    = os.environ.get("PROJECT_NAME", "kart")
-    DSN_SECRET_NAME = os.environ.get("DSN_SECRET_NAME", "glitchtip-kart-dsn")
+    ORG_NAME        = os.environ.get("ORG_NAME", "my-org")
+    PROJECT_NAME    = os.environ.get("PROJECT_NAME", "my-project")
+    DSN_SECRET_NAME = os.environ.get("DSN_SECRET_NAME", "glitchtip-dsn")
     DSN_SECRET_KEY  = os.environ.get("DSN_SECRET_KEY", "SENTRY_DSN")
 
     def configure_oidc():
@@ -145,7 +145,7 @@ data:
     from apps.organizations_ext.models import Organization
 
     U = get_user_model()
-    slug = os.environ.get("ORG_SLUG", "kutsam")
+    slug = os.environ.get("ORG_SLUG", "my-org")
     org = Organization.objects.filter(slug=slug).first()
     if org is None:
         print("[member-sync] org '%s' not found yet - nothing to do" % slug)

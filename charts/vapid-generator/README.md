@@ -56,7 +56,7 @@ helm install kart-vapid ./vapid-generator \
 ```
 
 In this repo it is deployed via GitOps as the `kart-vapid` ArgoCD Application
-(`projects/kutsam/dev/apps/templates/apps/kart-vapid.yaml`); every kart release
+(`projects/my-org/dev/apps/templates/apps/kart-vapid.yaml`); every kart release
 consumes the shared `kart-vapid-secrets` Secret.
 
 ## Values

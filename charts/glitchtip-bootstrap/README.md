@@ -19,7 +19,7 @@ env-var path exists):
 
 1. **SSO** — upserts the Authentik **OpenID Connect** `SocialApp` (allauth) so users can
    log in via Authentik.
-2. **Shared DSN** — creates the `kutsam` organization + `kart` project (if missing),
+2. **Shared DSN** — creates the `my-org` organization + `kart` project (if missing),
    reads its DSN, and writes it into a Secret (`glitchtip-kart-dsn`) that every kart
    branch/PR preview consumes.
 
@@ -38,7 +38,7 @@ The DSN Secret is written back via the Kubernetes API using the Job's ServiceAcc
 GlitchTip has no "add new users to a default org on signup" hook, and adding one would need
 a custom image. Instead, a **CronJob** (`memberSync.schedule`, default every 5 min) runs a
 Django shell script that adds every user to the shared org (`memberSync.orgSlug`, default
-`kutsam`) — the org holding the `kart` DSN project — so OIDC users get access automatically.
+`my-org`) — the org holding the `kart` DSN project — so OIDC users get access automatically.
 Idempotent (skips existing members); the first-ever member is OWNER, the rest are members.
 Near-real-time, not on-login; lower the interval for faster onboarding or set
 `memberSync.enabled=false` to manage membership manually.
