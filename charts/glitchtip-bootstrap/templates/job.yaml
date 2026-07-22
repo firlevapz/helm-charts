@@ -21,7 +21,7 @@ spec:
         {{- include "glitchtip-bootstrap.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
-      serviceAccountName: {{ .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default (include "glitchtip-bootstrap.fullname" .) }}
       containers:
         - name: bootstrap
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

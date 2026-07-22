@@ -1,10 +1,11 @@
+{{- $saName := .Values.serviceAccount.name | default (include "glitchtip-bootstrap.fullname" .) }}
 # ServiceAccount + namespaced RBAC so the bootstrap Job can write the DSN Secret it
 # generates back into this namespace via the Kubernetes API. Hooks run in the release
 # (destination) namespace, so a Role/RoleBinding is sufficient.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.serviceAccount.name }}
+  name: {{ $saName }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "glitchtip-bootstrap.labels" . | nindent 4 }}
@@ -17,7 +18,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ .Values.serviceAccount.name }}
+  name: {{ $saName }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "glitchtip-bootstrap.labels" . | nindent 4 }}
@@ -31,7 +32,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.serviceAccount.name }}
+  name: {{ $saName }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "glitchtip-bootstrap.labels" . | nindent 4 }}
@@ -40,8 +41,8 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ .Values.serviceAccount.name }}
+  name: {{ $saName }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.serviceAccount.name }}
+    name: {{ $saName }}
     namespace: {{ .Release.Namespace }}

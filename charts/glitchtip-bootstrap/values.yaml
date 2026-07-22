@@ -85,7 +85,8 @@ memberSync:
   orgSlug: my-org
 
 serviceAccount:
-  name: glitchtip-bootstrap
+  # When set, overrides the ServiceAccount name. Defaults to the chart fullname (release-aware).
+  name: ""
 
 # Runs after the GlitchTip chart's migrate hook (Helm post-install → ArgoCD PostSync,
 # default wave 0). The Job also retries internally, so ordering is best-effort.
